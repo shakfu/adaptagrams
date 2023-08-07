@@ -38,6 +38,9 @@ function(add_avoid_test)
 endfunction()
 
 
+file(MAKE_DIRECTORY ${CMAKE_CURRENT_BINARY_DIR}/output)
+
+
 add_avoid_test(NAME penaltyRerouting01 SOURCES penaltyRerouting01.cpp )
 add_avoid_test(NAME treeRootCrash01 SOURCES treeRootCrash01.cpp )
 add_avoid_test(NAME treeRootCrash02 SOURCES treeRootCrash02.cpp )

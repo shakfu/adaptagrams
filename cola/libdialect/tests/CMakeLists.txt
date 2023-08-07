@@ -43,6 +43,12 @@ function(add_dialect_test)
 
 endfunction()
 
+file(MAKE_DIRECTORY ${CMAKE_CURRENT_BINARY_DIR}/output/svg)
+
+if(NOT EXISTS ${CMAKE_CURRENT_BINARY_DIR}/graphs)
+file(COPY ${CMAKE_CURRENT_SOURCE_DIR}/graphs 
+     DESTINATION ${CMAKE_CURRENT_BINARY_DIR})
+endif()
 
 add_dialect_test(NAME aca SOURCES aca.cpp)
 add_dialect_test(NAME assignments SOURCES assignments.cpp)

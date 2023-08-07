@@ -27,7 +27,15 @@ function(add_cola_test)
         PUBLIC
         ${CMAKE_SOURCE_DIR}/cola
         ${CMAKE_CURRENT_SOURCE_DIR}
+        $<${HAVE_HOMEBREW}:${homebrew_prefix}/include>
+        $<${HAVE_CAIROMM}:${cairomm_prefix}/include>
         # ${CAIROMM_CFLAGS}
+    )
+
+    target_link_directories(${COLA_TEST_NAME}
+        PUBLIC
+        $<${HAVE_HOMEBREW}:${homebrew_prefix}/lib>
+        $<${HAVE_CAIROMM}:${cairomm_prefix}/lib>
     )
 
     target_link_libraries(${COLA_TEST_NAME}
@@ -36,6 +44,8 @@ function(add_cola_test)
         topology
         cola
         avoid
+        $<${HAVE_HOMEBREW}:-lcairo>
+        $<${HAVE_CAIROMM}:-lcairomm-1.16>
         # ${CAIROMM_LIBS}
     )
 
@@ -45,6 +55,13 @@ function(add_cola_test)
 
 endfunction()
 
+
+file(MAKE_DIRECTORY ${CMAKE_CURRENT_BINARY_DIR}/output)
+
+if(NOT EXISTS ${CMAKE_CURRENT_BINARY_DIR}/data)
+file(COPY ${CMAKE_CURRENT_SOURCE_DIR}/data 
+     DESTINATION ${CMAKE_CURRENT_BINARY_DIR})
+endif()
 
 add_cola_test(NAME initialOverlap SOURCES initialOverlap.cpp)
 add_cola_test(NAME overlappingClusters01 SOURCES overlappingClusters01.cpp)

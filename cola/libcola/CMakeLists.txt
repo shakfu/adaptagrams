@@ -76,9 +76,17 @@ add_dependencies(${LIB_NAME}
 # 	-no-undefined
 # )
 
+# target_link_directories(${LIB_NAME}
+	# PUBLIC
+	# $<${HAS_HOMEBREW}:${homebrew_prefix}/lib>
+	# $<${HAVE_CAIROMM}:${cairomm_prefix}/lib>
+# )
+
 # target_link_libraries(${LIB_NAME}
-# 	PUBLIC
-# 	${CAIROMM_LIBS}
+	# PUBLIC
+	# "$<${HAVE_CAIROMM}:-lcairomm>"
+	# $<${HAS_HOMEBREW}:${homebrew_prefix}/lib>
+	# ${CAIROMM_LIBS}
 # )
 
 

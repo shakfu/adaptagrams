@@ -27,7 +27,15 @@ function(add_topology_test)
         PUBLIC
         ${CMAKE_SOURCE_DIR}/cola
         ${CMAKE_CURRENT_SOURCE_DIR}
+        $<${HAVE_HOMEBREW}:${homebrew_prefix}/include>
+        $<${HAVE_CAIROMM}:${cairomm_prefix}/include>
         #${CAIROMM_CFLAGS}
+    )
+
+    target_link_directories(${TOPOLOGY_TEST_NAME}
+        PUBLIC
+        $<${HAVE_HOMEBREW}:${homebrew_prefix}/lib>
+        $<${HAVE_CAIROMM}:${cairomm_prefix}/lib>
     )
 
     target_link_libraries(${TOPOLOGY_TEST_NAME}
@@ -36,6 +44,8 @@ function(add_topology_test)
         cola
         vpsc
         avoid
+        $<${HAVE_HOMEBREW}:-lcairo>
+        $<${HAVE_CAIROMM}:-lcairomm-1.16>
         # ${CAIROMM_LIBS}
     )
 
@@ -44,6 +54,10 @@ function(add_topology_test)
     )
 
 endfunction()
+
+
+file(MAKE_DIRECTORY ${CMAKE_CURRENT_BINARY_DIR}/output)
+
 
 add_topology_test(NAME simple_bend SOURCES simple_bend.cpp)
 add_topology_test(NAME nooverlap SOURCES nooverlap.cpp)
