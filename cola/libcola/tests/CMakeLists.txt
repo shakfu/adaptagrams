@@ -28,14 +28,12 @@ function(add_cola_test)
         ${CMAKE_SOURCE_DIR}/cola
         ${CMAKE_CURRENT_SOURCE_DIR}
         $<${HAVE_HOMEBREW}:${homebrew_prefix}/include>
-        $<${HAVE_CAIROMM}:${cairomm_prefix}/include>
         # ${CAIROMM_CFLAGS}
     )
 
     target_link_directories(${COLA_TEST_NAME}
         PUBLIC
         $<${HAVE_HOMEBREW}:${homebrew_prefix}/lib>
-        $<${HAVE_CAIROMM}:${cairomm_prefix}/lib>
     )
 
     target_link_libraries(${COLA_TEST_NAME}
@@ -44,8 +42,7 @@ function(add_cola_test)
         topology
         cola
         avoid
-        $<${HAVE_HOMEBREW}:-lcairo>
-        $<${HAVE_CAIROMM}:-lcairomm-1.16>
+        $<${HAVE_CAIROMM}:${CAIROMM_LIB}>
         # ${CAIROMM_LIBS}
     )
 
