@@ -49,37 +49,38 @@ target_include_directories(${LIB_NAME}
 	PUBLIC
 	${CMAKE_SOURCE_DIR}/cola
 	${CMAKE_CURRENT_SOURCE_DIR}
-	# ${CAIROMM_CFLAGS}
+	$<${HAVE_CAIROMM}:${CAIROMM_INCLUDE_DIR}>
 )
 
-target_compile_options(${LIB_NAME}
-	PUBLIC
-	-fPIC
+set_target_properties(
+    ${LIB_NAME} 
+    PROPERTIES
+    POSITION_INDEPENDENT_CODE ON
+)
+
+target_compile_definitions(${LIB_NAME}
+    PUBLIC
+    ${COMMON_COMPILE_DEFINITIONS}
 )
 
 target_link_options(${LIB_NAME}
-	PUBLIC
-	$<$<PLATFORM_ID:Darwin>:-Wl,-undefined,error>
-	$<$<PLATFORM_ID:Linux>:-no-undefined>
+    PUBLIC
+    ${COMMON_LINK_OPTIONS}
 )
 
 add_dependencies(${LIB_NAME}
 	vpsc
 )
 
+target_link_directories(${LIB_NAME}
+	PUBLIC
+	$<${HAVE_CAIROMM}:${CAIROMM_LINK_DIR}>
+)
 
-# target_link_directories(${LIB_NAME}
-	# PUBLIC
-	# $<${HAS_HOMEBREW}:${homebrew_prefix}/lib>
-	# $<${HAVE_CAIROMM}:${cairomm_prefix}/lib>
-# )
-
-# target_link_libraries(${LIB_NAME}
-	# PUBLIC
-	# "$<${HAVE_CAIROMM}:-lcairomm>"
-	# $<${HAS_HOMEBREW}:${homebrew_prefix}/lib>
-	# ${CAIROMM_LIBS}
-# )
+target_link_libraries(${LIB_NAME}
+	PUBLIC
+	$<${HAVE_CAIROMM}:${CAIROMM_LIB}>
+)
 
 
 if(BUILD_TESTS)

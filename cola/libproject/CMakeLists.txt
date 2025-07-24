@@ -22,15 +22,26 @@ target_include_directories(${LIB_NAME}
 	${CMAKE_CURRENT_SOURCE_DIR}
 )
 
-target_compile_options(${LIB_NAME}
-	PUBLIC
-	-fPIC
+set_target_properties(
+    ${LIB_NAME} 
+    PROPERTIES
+    POSITION_INDEPENDENT_CODE ON
+)
+
+target_compile_definitions(${LIB_NAME}
+    PUBLIC
+    ${COMMON_COMPILE_DEFINITIONS}
 )
 
 target_link_options(${LIB_NAME}
-	PUBLIC
-	$<$<PLATFORM_ID:Darwin>:-Wl,-undefined,error>
-	$<$<PLATFORM_ID:Linux>:-no-undefined>
+    PUBLIC
+    ${COMMON_LINK_OPTIONS}
+)
+
+target_link_options(${LIB_NAME}
+    PUBLIC
+    $<$<PLATFORM_ID:Darwin>:-Wl,-undefined,error>
+    $<$<PLATFORM_ID:Linux>:-no-undefined>
 )
 
 

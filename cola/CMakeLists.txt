@@ -1,4 +1,25 @@
 
+set(COMMON_COMPILE_DEFINITIONS
+    $<$<PLATFORM_ID:Windows>:_SILENCE_ALL_CXX17_DEPRECATION_WARNINGS>
+    $<$<PLATFORM_ID:Windows>:_CRT_SECURE_NO_WARNINGS>
+    $<$<PLATFORM_ID:Windows>:NOMINMAX>
+    $<$<PLATFORM_ID:Windows>:LIBAVOID_NO_DLL>
+    $<$<PLATFORM_ID:Windows>:_WIN32_WINNT=0x0501>
+    $<$<PLATFORM_ID:Windows>:_USE_MATH_DEFINES>
+
+    $<$<PLATFORM_ID:Unix>:-Wall>
+    $<$<PLATFORM_ID:Unix>:-Wpointer-arith>
+    $<$<PLATFORM_ID:Unix>:-Wcast-align>
+    $<$<PLATFORM_ID:Unix>:-Wsign-compare>
+    $<$<PLATFORM_ID:Unix>:-Woverloaded-virtual>
+    $<$<PLATFORM_ID:Unix>:-Wswitch>
+)
+
+set(COMMON_LINK_OPTIONS
+    # $<$<PLATFORM_ID:Darwin>:-Wl,-undefined,error>
+    $<$<PLATFORM_ID:Linux>:-no-undefined>
+)
+
 add_subdirectory(libavoid)
 add_subdirectory(libcola)
 add_subdirectory(libdialect)
