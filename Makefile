@@ -3,7 +3,7 @@ INSTALL := $(PWD)/build/install
 
 .PHONY: all build test clean install
 
-all: install
+all: build
 
 build:
 	@mkdir -p build && cd build && cmake .. && cmake --build .

@@ -1,6 +1,11 @@
 
 # libcola tests
 
+MESSAGE(STATUS "HAVE_CAIROMM: ${HAVE_CAIROMM}")
+MESSAGE(STATUS "CAIROMM_INCLUDE_DIRS: ${CAIROMM_INCLUDE_DIRS}")
+MESSAGE(STATUS "CAIROMM_LIBRARY_DIRS: ${CAIROMM_LIBRARY_DIRS}")
+MESSAGE(STATUS "CAIROMM_LIBRARIES: ${CAIROMM_LIBRARIES}")
+
 function(add_cola_test)
 
     set(options)
@@ -10,7 +15,7 @@ function(add_cola_test)
     )
 
     set(multiValueArgs
-      SOURCES
+        SOURCES
     )
 
     cmake_parse_arguments(
@@ -27,13 +32,12 @@ function(add_cola_test)
         PUBLIC
         ${CMAKE_SOURCE_DIR}/cola
         ${CMAKE_CURRENT_SOURCE_DIR}
-        $<${HAVE_HOMEBREW}:${homebrew_prefix}/include>
-        # ${CAIROMM_CFLAGS}
+        $<${HAVE_CAIROMM}:${CAIROMM_INCLUDE_DIRS}>
     )
 
     target_link_directories(${COLA_TEST_NAME}
         PUBLIC
-        $<${HAVE_HOMEBREW}:${homebrew_prefix}/lib>
+        $<${HAVE_CAIROMM}:${CAIROMM_LIBRARY_DIRS}>
     )
 
     target_link_libraries(${COLA_TEST_NAME}
@@ -42,12 +46,11 @@ function(add_cola_test)
         topology
         cola
         avoid
-        $<${HAVE_CAIROMM}:${CAIROMM_LIB}>
-        # ${CAIROMM_LIBS}
+        $<${HAVE_CAIROMM}:${CAIROMM_LIBRARIES}>
     )
 
     add_test(NAME ${COLA_TEST_NAME}
-         COMMAND ${COLA_TEST_NAME}
+        COMMAND ${COLA_TEST_NAME}
     )
 
 endfunction()

@@ -1,4 +1,4 @@
-cmake_minimum_required(VERSION 3.35)
+cmake_minimum_required(VERSION 3.28)
 
 project(adaptagrams)
 
@@ -23,8 +23,7 @@ endif()
 
 message(STATUS "CMAKE_SYSTEM_NAME: ${CMAKE_SYSTEM_NAME}")
 
-if (CMAKE_SYSTEM_NAME STREQUAL "Darwin")
-    # i.e check if homebrew is used, set local prefix accordingly
+if(CMAKE_SYSTEM_NAME STREQUAL "Darwin")
     execute_process(
         COMMAND brew --prefix
         OUTPUT_VARIABLE HOMEBREW_PREFIX
@@ -34,23 +33,41 @@ if (CMAKE_SYSTEM_NAME STREQUAL "Darwin")
         set(HAVE_HOMEBREW 1 CACHE BOOL "have homebrew on system" FORCE)
         message(STATUS "HAVE_HOMEBREW: ${HAVE_HOMEBREW}")
         list(APPEND CMAKE_PREFIX_PATH ${HOMEBREW_PREFIX})
-
         find_library(
             CAIROMM_LIB 
             NAMES cairomm cairomm-1.16 libcairomm-1.16.dylib
             HINTS ${HOMEBREW_PREFIX}/lib
         )
         message("system: ${CMAKE_SYSTEM_PREFIX_PATH}")
-        if(CAIROMM_LIB STREQUAL "CAIROMM_LIB-NOTFOUND")
-            set(HAVE_CAIROMM 0 CACHE BOOL "do not have cairomm on system" FORCE)
-            message(STATUS "HAVE_CAIROMM: ${HAVE_CAIROMM}")
-        else()
+        if(CAIROMM_LIB)
             set(HAVE_CAIROMM 1 CACHE BOOL "have cairomm on system" FORCE)
-            set(CAIROMM_INCLUDE_DIR ${HOMEBREW_PREFIX}/include)
-            set(CAIROMM_LINK_DIR ${HOMEBREW_PREFIX}/lib)
+            set(CAIROMM_INCLUDE_DIRS ${HOMEBREW_PREFIX}/include)
+            set(CAIROMM_LIBRARY_DIRS ${HOMEBREW_PREFIX}/lib)
             message(STATUS "HAVE_CAIROMM: ${HAVE_CAIROMM}")
             message(STATUS "CAIROMM_LIB: ${CAIROMM_LIB}")
+        else()
+            set(HAVE_CAIROMM 0 CACHE BOOL "" FORCE)
         endif()
+    endif()
+endif()
+
+if(CMAKE_SYSTEM_NAME STREQUAL "Linux")
+    message(STATUS "inside LINUX section")
+    # Find the PkgConfig module
+    find_package(PkgConfig REQUIRED)
+
+    pkg_check_modules(CAIROMM cairomm-svg-1.16 REQUIRED)
+
+    if(CAIROMM_FOUND)
+        set(HAVE_CAIROMM 1 CACHE BOOL "have cairomm on system" FORCE)
+        message(status "CAIROMM_INCLUDE_DIRS is set")
+        message(status "CAIROMM_LIBRARY_DIRS is set")
+        message(status "CAIROMM_LIBRARIES is set")
+        message(status "CAIROMM_CFLAGS is set")
+        message(status "CAIROMM_LDFLAGS is set")
+    else()
+        message(status "cairomm-svg-1.16 NOT FOUND")
+        set(HAVE_CAIROMM 0 CACHE BOOL "" FORCE)
     endif()
 endif()
 
@@ -72,7 +89,6 @@ configure_file(
     ${CMAKE_SOURCE_DIR}/cola/libcola/config.h.cmake.in 
     ${CMAKE_SOURCE_DIR}/cola/libcola/config.h
 )
-
 
 if(BUILD_TESTS)
     enable_testing()

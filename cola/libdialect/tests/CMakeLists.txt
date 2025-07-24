@@ -31,11 +31,19 @@ function(add_dialect_test)
 
     target_link_libraries(${DIALECT_TEST_NAME}
         PUBLIC
+        dialect
         vpsc
         cola
-        avoid
-        dialect
+        avoid   
     )
+
+    # target_link_libraries(${DIALECT_TEST_NAME}
+    #     PUBLIC
+    #     vpsc
+    #     cola
+    #     avoid
+    #     dialect
+    # )
 
     add_test(NAME ${DIALECT_TEST_NAME}
          COMMAND ${DIALECT_TEST_NAME}

@@ -49,7 +49,7 @@ target_include_directories(${LIB_NAME}
 	PUBLIC
 	${CMAKE_SOURCE_DIR}/cola
 	${CMAKE_CURRENT_SOURCE_DIR}
-	$<${HAVE_CAIROMM}:${CAIROMM_INCLUDE_DIR}>
+	$<${HAVE_CAIROMM}:${CAIROMM_INCLUDE_DIRS}>
 )
 
 set_target_properties(
@@ -74,12 +74,12 @@ add_dependencies(${LIB_NAME}
 
 target_link_directories(${LIB_NAME}
 	PUBLIC
-	$<${HAVE_CAIROMM}:${CAIROMM_LINK_DIR}>
+	$<${HAVE_CAIROMM}:${CAIROMM_LIBRARY_DIRS}>
 )
 
 target_link_libraries(${LIB_NAME}
 	PUBLIC
-	$<${HAVE_CAIROMM}:${CAIROMM_LIB}>
+	$<${HAVE_CAIROMM}:${CAIROMM_LIBRARIES}>
 )
 
 

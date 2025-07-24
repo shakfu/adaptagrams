@@ -27,13 +27,12 @@ function(add_topology_test)
         PUBLIC
         ${CMAKE_SOURCE_DIR}/cola
         ${CMAKE_CURRENT_SOURCE_DIR}
-        $<${HAVE_HOMEBREW}:${homebrew_prefix}/include>
-        #${CAIROMM_CFLAGS}
+        $<${HAVE_CAIROMM}:${CAIROMM_INCLUDE_DIRS}>
     )
 
     target_link_directories(${TOPOLOGY_TEST_NAME}
         PUBLIC
-        $<${HAVE_HOMEBREW}:${homebrew_prefix}/lib>
+        $<${HAVE_CAIROMM}:${CAIROMM_LIBRARY_DIRS}>
     )
 
     target_link_libraries(${TOPOLOGY_TEST_NAME}
@@ -42,8 +41,7 @@ function(add_topology_test)
         cola
         vpsc
         avoid
-        $<${HAVE_CAIROMM}:${CAIROMM_LIB}>
-        # ${CAIROMM_LIBS}
+        $<${HAVE_CAIROMM}:${CAIROMM_LIBRARIES}>
     )
 
     add_test(NAME ${TOPOLOGY_TEST_NAME}

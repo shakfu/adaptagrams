@@ -15,11 +15,6 @@ set(COMMON_COMPILE_DEFINITIONS
     $<$<PLATFORM_ID:Unix>:-Wswitch>
 )
 
-set(COMMON_LINK_OPTIONS
-    # $<$<PLATFORM_ID:Darwin>:-Wl,-undefined,error>
-    $<$<PLATFORM_ID:Linux>:-no-undefined>
-)
-
 add_subdirectory(libavoid)
 add_subdirectory(libcola)
 add_subdirectory(libdialect)

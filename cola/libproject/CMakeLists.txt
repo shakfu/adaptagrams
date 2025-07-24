@@ -38,12 +38,6 @@ target_link_options(${LIB_NAME}
     ${COMMON_LINK_OPTIONS}
 )
 
-target_link_options(${LIB_NAME}
-    PUBLIC
-    $<$<PLATFORM_ID:Darwin>:-Wl,-undefined,error>
-    $<$<PLATFORM_ID:Linux>:-no-undefined>
-)
-
 
 if(BUILD_TESTS)
 	add_subdirectory(tests)
