@@ -6,7 +6,7 @@ INSTALL := $(PWD)/build/install
 all: build
 
 build:
-	@mkdir -p build && cd build && cmake .. && cmake --build .
+	@mkdir -p build && cd build && cmake .. && cmake --build . --config Release
 
 test:
 	@mkdir -p build && cd build && cmake .. -DBUILD_TESTS=ON && cmake --build . && ctest

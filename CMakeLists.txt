@@ -46,6 +46,8 @@ if(CMAKE_SYSTEM_NAME STREQUAL "Darwin" OR CMAKE_SYSTEM_NAME STREQUAL "Linux")
         message(status "cairomm-svg-1.16 NOT FOUND")
         set(HAVE_CAIROMM 0 CACHE BOOL "" FORCE)
     endif()
+else()
+	set(HAVE_CAIROMM 0 CACHE BOOL "" FORCE)
 endif()
 
 include(CheckIncludeFile)
