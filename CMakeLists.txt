@@ -23,54 +23,30 @@ endif()
 
 message(STATUS "CMAKE_SYSTEM_NAME: ${CMAKE_SYSTEM_NAME}")
 
-if(CMAKE_SYSTEM_NAME STREQUAL "Darwin")
-    execute_process(
-        COMMAND brew --prefix
-        OUTPUT_VARIABLE HOMEBREW_PREFIX
-        OUTPUT_STRIP_TRAILING_WHITESPACE
-    )
-    if(DEFINED HOMEBREW_PREFIX)
-        set(HAVE_HOMEBREW 1 CACHE BOOL "have homebrew on system" FORCE)
-        message(STATUS "HAVE_HOMEBREW: ${HAVE_HOMEBREW}")
-        list(APPEND CMAKE_PREFIX_PATH ${HOMEBREW_PREFIX})
-        find_library(
-            CAIROMM_LIB 
-            NAMES cairomm cairomm-1.16 libcairomm-1.16.dylib
-            HINTS ${HOMEBREW_PREFIX}/lib
-        )
-        message("system: ${CMAKE_SYSTEM_PREFIX_PATH}")
-        if(CAIROMM_LIB)
-            set(HAVE_CAIROMM 1 CACHE BOOL "have cairomm on system" FORCE)
-            set(CAIROMM_INCLUDE_DIRS ${HOMEBREW_PREFIX}/include)
-            set(CAIROMM_LIBRARY_DIRS ${HOMEBREW_PREFIX}/lib)
-            message(STATUS "HAVE_CAIROMM: ${HAVE_CAIROMM}")
-            message(STATUS "CAIROMM_LIB: ${CAIROMM_LIB}")
-        else()
-            set(HAVE_CAIROMM 0 CACHE BOOL "" FORCE)
-        endif()
-    endif()
-endif()
+if(CMAKE_SYSTEM_NAME STREQUAL "Darwin" OR CMAKE_SYSTEM_NAME STREQUAL "Linux")
 
-if(CMAKE_SYSTEM_NAME STREQUAL "Linux")
-    message(STATUS "inside LINUX section")
-    # Find the PkgConfig module
     find_package(PkgConfig REQUIRED)
 
-    pkg_check_modules(CAIROMM cairomm-svg-1.16 REQUIRED)
+    if(CMAKE_SYSTEM_NAME STREQUAL "Darwin")
+        set(package_name cairomm-1.16)
+    else() # linux
+        set(package_name cairomm-svg-1.16)
+    endif()
+
+    pkg_check_modules(CAIROMM ${package_name} REQUIRED)
 
     if(CAIROMM_FOUND)
         set(HAVE_CAIROMM 1 CACHE BOOL "have cairomm on system" FORCE)
-        message(status "CAIROMM_INCLUDE_DIRS is set")
-        message(status "CAIROMM_LIBRARY_DIRS is set")
-        message(status "CAIROMM_LIBRARIES is set")
-        message(status "CAIROMM_CFLAGS is set")
-        message(status "CAIROMM_LDFLAGS is set")
+        message(status "CAIROMM_INCLUDE_DIRS: ${CAIROMM_INCLUDE_DIRS}")
+        message(status "CAIROMM_LIBRARY_DIRS: ${CAIROMM_LIBRARY_DIRS}")
+        message(status "CAIROMM_LIBRARIES: ${CAIROMM_LIBRARIES}")
+        message(status "CAIROMM_CFLAGS: ${CAIROMM_CFLAGS}")
+        message(status "CAIROMM_LDFLAGS: ${CAIROMM_LDFLAGS}")
     else()
         message(status "cairomm-svg-1.16 NOT FOUND")
         set(HAVE_CAIROMM 0 CACHE BOOL "" FORCE)
     endif()
 endif()
-
 
 include(CheckIncludeFile)
 
