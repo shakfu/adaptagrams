@@ -1,12 +1,17 @@
 
 INSTALL := $(PWD)/build/install
 
-.PHONY: all build test clean install
+.PHONY: all build python test clean install
 
 all: build
 
 build:
 	@mkdir -p build && cd build && cmake .. && cmake --build . --config Release
+
+python:
+	@mkdir -p build && cd build \
+		&& cmake .. -DBUILD_SWIG_PYTHON=ON \
+		&& cmake --build . --config Release
 
 test:
 	@mkdir -p build && cd build && cmake .. -DBUILD_TESTS=ON && cmake --build . && ctest

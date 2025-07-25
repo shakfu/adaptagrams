@@ -83,6 +83,14 @@ The only dependency is [Cairo][cairo] if debugging SVG output is to be included 
 
 Run `./autogen.sh` to compile from scratch.
 
+An alternate method to build out-of-source is via cmake. For example, to build and run tests and the swig python extension:
+
+```sh
+mkdir -p build && cd build \
+	&& cmake .. -DBUILD_TESTS=ON -DBUILD_SWIG_PYTHON=ON \
+	&& cmake --build . --config Release
+```
+
 Use from other languages
 ------------------------
 
