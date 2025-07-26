@@ -53,7 +53,16 @@ set(LIB_HEADERS
 )
 
 add_library(${LIB_NAME}
-	${LIB_SOURCES}
+    ${LIB_SOURCES}
+)
+
+target_sources(
+    ${LIB_NAME}
+    PUBLIC
+    FILE_SET libdialect_headers
+    BASE_DIRS ${CMAKE_CURRENT_SOURCE_DIR}
+    TYPE HEADERS
+    FILES ${LIB_HEADERS}
 )
 
 target_include_directories(${LIB_NAME}
@@ -87,3 +96,9 @@ add_dependencies(${LIB_NAME}
 if(BUILD_TESTS)
     add_subdirectory(tests)
 endif()
+
+install(
+    TARGETS ${LIB_NAME}
+    FILE_SET libdialect_headers DESTINATION include/libdialect
+)
+

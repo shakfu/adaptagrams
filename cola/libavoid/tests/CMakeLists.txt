@@ -3,36 +3,36 @@
 
 function(add_avoid_test)
 
-	set(options)
+    set(options)
 
-	set(oneValueArgs
+    set(oneValueArgs
         NAME
     )
 
     set(multiValueArgs
-    	SOURCES
+        SOURCES
     )
 
     cmake_parse_arguments(AVOID_TEST "${options}" "${oneValueArgs}"
                           "${multiValueArgs}" ${ARGN} )
 
     add_executable(${AVOID_TEST_NAME}
-    	${AVOID_TEST_SOURCES}
+        ${AVOID_TEST_SOURCES}
     )
 
     target_include_directories(${AVOID_TEST_NAME}
-    	PUBLIC
-		${CMAKE_SOURCE_DIR}/cola
-		${CMAKE_CURRENT_SOURCE_DIR}
+        PUBLIC
+        ${CMAKE_SOURCE_DIR}/cola
+        ${CMAKE_CURRENT_SOURCE_DIR}
     )
 
     target_link_libraries(${AVOID_TEST_NAME}
-    	PUBLIC
-    	avoid
+        PUBLIC
+        avoid
     )
 
     add_test(NAME ${AVOID_TEST_NAME}
-    		 COMMAND ${AVOID_TEST_NAME}
+             COMMAND ${AVOID_TEST_NAME}
     )
 
 endfunction()

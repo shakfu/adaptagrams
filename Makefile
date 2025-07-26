@@ -1,36 +1,31 @@
 
-INSTALL := $(PWD)/build/install
+PREFIX ?= $(CURDIR)/build/install
 
 .PHONY: all build python test clean install
 
 all: build
 
 build:
-	@mkdir -p build && cd build && cmake .. && cmake --build . --config Release
+	@mkdir -p build \
+	&& cd build \
+	&& cmake .. \
+	&& cmake --build . --config Release
 
 python:
 	@mkdir -p build && cd build \
 		&& cmake .. -DBUILD_SWIG_PYTHON=ON \
-		&& cmake --build . --config Release
+		&& cmake --build . --config Release \
+		&& cmake --install . --prefix $(PREFIX)
 
 test:
-	@mkdir -p build && cd build && cmake .. -DBUILD_TESTS=ON && cmake --build . && ctest
+	@mkdir -p build && cd build \
+		&& cmake .. -DBUILD_TESTS=ON \
+		&& cmake --build . --config Debug \
+		&& ctest
 
 install: build
-	@mkdir -p $(INSTALL)/lib
-	@cp build/*.a $(INSTALL)/lib
-	@mkdir -p $(INSTALL)/include/libavoid
-	@mkdir -p $(INSTALL)/include/libcola
-	@mkdir -p $(INSTALL)/include/libdialect
-	@mkdir -p $(INSTALL)/include/libproject
-	@mkdir -p $(INSTALL)/include/libtopology
-	@mkdir -p $(INSTALL)/include/libvpsc
-	@cp -f cola/libavoid/*.h $(INSTALL)/include/libavoid
-	@cp -f cola/libcola/*.h $(INSTALL)/include/libcola
-	@cp -f cola/libdialect/*.h $(INSTALL)/include/libdialect
-	@cp -f cola/libproject/*.h $(INSTALL)/include/libproject
-	@cp -f cola/libtopology/*.h $(INSTALL)/include/libtopology
-	@cp -f cola/libvpsc/*.h $(INSTALL)/include/libvpsc
+	@cd build \
+	&& cmake --install . --prefix $(PREFIX)
 
 clean:
 	@rm -rf build

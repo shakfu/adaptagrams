@@ -129,6 +129,10 @@ if(BUILD_SWIG_PYTHON)
                 topology
                 vpsc
             )
+
+            install(TARGETS _adaptagrams DESTINATION lib/adaptagrams)
+            install(FILES ${CMAKE_SOURCE_DIR}/cola/__init__.py DESTINATION lib/adaptagrams)
+            install(FILES ${CMAKE_BINARY_DIR}/adaptagrams.py DESTINATION lib/adaptagrams)
         endif()
     endif()
 endif()

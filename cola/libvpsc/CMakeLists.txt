@@ -28,6 +28,15 @@ add_library(${LIB_NAME}
 	${LIB_SOURCES}
 )
 
+target_sources(
+	${LIB_NAME}
+	PUBLIC
+	FILE_SET libvpsc_headers
+	BASE_DIRS ${CMAKE_CURRENT_SOURCE_DIR}
+	TYPE HEADERS
+	FILES ${LIB_HEADERS}
+)
+
 target_include_directories(${LIB_NAME}
 	PUBLIC
 	${CMAKE_SOURCE_DIR}/cola
@@ -53,3 +62,8 @@ target_link_options(${LIB_NAME}
 if(BUILD_TESTS)
 	add_subdirectory(tests)
 endif()
+
+install(
+	TARGETS ${LIB_NAME}
+    FILE_SET libvpsc_headers DESTINATION include/libvpsc
+)

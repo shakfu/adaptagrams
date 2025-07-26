@@ -48,9 +48,9 @@ add_project_test(NAME static SOURCES static.cpp ${testutil_SOURCES})
 add_project_test(NAME random SOURCES random.cpp ${testutil_SOURCES})
 add_project_test(NAME treeqptest SOURCES treeqptest.cpp treeqp.cpp ${testutil_SOURCES})
 add_project_test(NAME quadprogpptest 
-	SOURCES
-	quadprogpp/main.cc
-	quadprogpp/QuadProg++.h
-	quadprogpp/QuadProg++.cc
+    SOURCES
+    quadprogpp/main.cc
+    quadprogpp/QuadProg++.h
+    quadprogpp/QuadProg++.cc
 )
 
