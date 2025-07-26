@@ -44,8 +44,11 @@ jobs:
         submodules: 'recursive'
         fetch-depth: '0'
 
+    - name: install dependencies
+      run: brew update && brew install cairomm swig
+
     - name: build adaptagrams
-      run: make python
+      run: make
 
     - uses: actions/upload-artifact@v4
       with:
@@ -62,8 +65,11 @@ jobs:
         submodules: 'recursive'
         fetch-depth: '0'
 
+    - name: install dependencies
+      run: sudo apt update && sudo apt install cairomm-svg-1.16 swig
+
     - name: build adaptagrams
-      run: make python
+      run: make
 
     - uses: actions/upload-artifact@v4
       with:
@@ -81,7 +87,7 @@ jobs:
   #       fetch-depth: '0'
 
   #   - name: build adaptagrams
-  #     run: make python
+  #     run: make
 
   #   - uses: actions/upload-artifact@v4
   #     with:
