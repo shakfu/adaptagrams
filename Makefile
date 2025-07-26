@@ -13,15 +13,15 @@ build:
 
 python:
 	@mkdir -p build && cd build \
-		&& cmake .. -DBUILD_SWIG_PYTHON=ON \
-		&& cmake --build . --config Release \
-		&& cmake --install . --prefix $(PREFIX)
+	&& cmake .. -DBUILD_SWIG_PYTHON=ON \
+	&& cmake --build . --config Release \
+	&& cmake --install . --prefix $(PREFIX)
 
 test:
 	@mkdir -p build && cd build \
-		&& cmake .. -DBUILD_TESTS=ON \
-		&& cmake --build . --config Debug \
-		&& ctest
+	&& cmake .. -DBUILD_TESTS=ON \
+	&& cmake --build . --config Debug \
+	&& ctest
 
 install: build
 	@cd build \
