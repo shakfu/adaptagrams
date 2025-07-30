@@ -45,7 +45,7 @@ libraries:
     E = Expand/Emend; and T = Transform.
     ```
 
-    - libdialect depends on libavoid, libcola and libvpsc.
+  - libdialect depends on libavoid, libcola and libvpsc.
 
 These libraries are collectively known as cola (for Constraint Layout). The
 newest version of the C++ source code for cola can be found in the
