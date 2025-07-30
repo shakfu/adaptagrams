@@ -80,59 +80,63 @@ add_subdirectory(cola)
 
 
 if(BUILD_SWIG_PYTHON)
-    message(STATUS "building swig python")
-    execute_process(
-        OUTPUT_FILE ${CMAKE_BINARY_DIR}/adaptagrams_wrap.cxx
-        COMMAND swig -DNDEBUG -c++ -python
-                -outdir ${CMAKE_BINARY_DIR}
-                -o ${CMAKE_BINARY_DIR}/adaptagrams_wrap.cxx adaptagrams.i
-        WORKING_DIRECTORY ${CMAKE_SOURCE_DIR}/cola
-    )
-    if(EXISTS ${CMAKE_BINARY_DIR}/adaptagrams_wrap.cxx)
-        message(STATUS "finding python")
-        find_package(Python COMPONENTS Interpreter Development.Module REQUIRED)
-
-        if(Python_FOUND)
-            python_add_library(
-                _adaptagrams
-                MODULE WITH_SOABI 
-                ${CMAKE_BINARY_DIR}/adaptagrams_wrap.cxx
-            )
-
-            set_target_properties(
-                _adaptagrams
-                PROPERTIES
-                CXX_STANDARD 11 
-                CXX_STANDARD_REQUIRED ON 
-                CXX_EXTENSIONS OFF
-            )
-
-            target_compile_definitions(
-                _adaptagrams
-                PRIVATE
-                USE_ASSERT_EXCEPTIONS
-                SWIG_PYTHON_SILENT_MEMLEAK
-            )
-
-            target_include_directories(
-                _adaptagrams
-                PUBLIC
-                ${CMAKE_SOURCE_DIR}/cola
-            )
-
-            target_link_libraries(
-                _adaptagrams
-                PRIVATE
-                avoid
-                cola
-                dialect
-                topology
-                vpsc
-            )
-
-            install(TARGETS _adaptagrams DESTINATION lib/adaptagrams)
-            install(FILES ${CMAKE_SOURCE_DIR}/cola/__init__.py DESTINATION lib/adaptagrams)
-            install(FILES ${CMAKE_BINARY_DIR}/adaptagrams.py DESTINATION lib/adaptagrams)
+    find_package(SWIG COMPONENTS python)
+    find_package(Python COMPONENTS Interpreter Development.Module REQUIRED)
+    if(SWIG_FOUND AND Python_FOUND)
+        message(STATUS "building adaptagrams swig python extension")
+        set(generated_file ${CMAKE_BINARY_DIR}/adaptagrams_wrap.cxx)
+        execute_process(
+            OUTPUT_FILE ${CMAKE_BINARY_DIR}/adaptagrams_wrap.cxx
+            COMMAND ${SWIG_EXECUTABLE} -DNDEBUG -c++ -python
+                    -outdir ${CMAKE_BINARY_DIR}
+                    -o ${generated_file} adaptagrams.i
+            WORKING_DIRECTORY ${CMAKE_SOURCE_DIR}/cola
+        )
+        if(NOT EXISTS ${generated_file})
+            message(FATAL_ERROR "did not generate: ${generated_file}")
         endif()
+
+        python_add_library(
+            _adaptagrams
+            MODULE WITH_SOABI
+            ${generated_file}
+        )
+
+        set_target_properties(
+            _adaptagrams
+            PROPERTIES
+            CXX_STANDARD 11 
+            CXX_STANDARD_REQUIRED ON 
+            CXX_EXTENSIONS OFF
+        )
+
+        target_compile_definitions(
+            _adaptagrams
+            PRIVATE
+            USE_ASSERT_EXCEPTIONS
+            SWIG_PYTHON_SILENT_MEMLEAK
+        )
+
+        target_include_directories(
+            _adaptagrams
+            PUBLIC
+            ${CMAKE_SOURCE_DIR}/cola
+        )
+
+        target_link_libraries(
+            _adaptagrams
+            PRIVATE
+            avoid
+            cola
+            dialect
+            topology
+            vpsc
+        )
+
+        install(TARGETS _adaptagrams DESTINATION lib/adaptagrams)
+        install(FILES ${CMAKE_SOURCE_DIR}/cola/__init__.py DESTINATION lib/adaptagrams)
+        install(FILES ${CMAKE_BINARY_DIR}/adaptagrams.py DESTINATION lib/adaptagrams)
+    else()
+        message(FATAL_ERROR "NotFoundError: SWIG: ${SWIG_FOUND} Python: ${Python_FOUND}")
     endif()
 endif()
