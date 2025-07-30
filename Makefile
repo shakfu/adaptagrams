@@ -17,6 +17,11 @@ python:
 	&& cmake --build . --config Release \
 	&& cmake --install . --prefix $(PREFIX)
 
+java:
+	@mkdir -p build && cd build \
+	&& cmake .. -DBUILD_SWIG_JAVA=ON \
+	&& cmake --build . --config Release
+
 test:
 	@mkdir -p build && cd build \
 	&& cmake .. -DBUILD_TESTS=ON \

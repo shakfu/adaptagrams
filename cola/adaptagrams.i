@@ -219,7 +219,9 @@ class ColaException {
    change ownership of the wrapped Python object to avoid that the interpreter
    garbage collects it when only a reference is stored in RectanglePtrs
 */
+#ifdef SWIGPYTHON
 %pythonappend Rectangle %{ self.thisown = 0 %}
+#endif
 
 %template(Chars) std::vector<char>;
 %template(Unsigneds) std::vector<unsigned>;

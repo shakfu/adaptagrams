@@ -8,8 +8,9 @@ set(CMAKE_CXX_EXTENSIONS OFF)
 
 set(CMAKE_ARCHIVE_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR} CACHE PATH "" FORCE)
 
-option(BUILD_SWIG_PYTHON "Enable building swig python wrapper")
 option(BUILD_TESTS "Enable building tests")
+option(BUILD_SWIG_PYTHON "Enable building swig python wrapper")
+option(BUILD_SWIG_JAVA "Enable building swig java wrapper")
 option(ENABLE_CCACHE "Use ccache if available" ON)
 
 # use ccache if available
@@ -79,17 +80,85 @@ endif()
 add_subdirectory(cola)
 
 
+if(BUILD_SWIG_JAVA)
+    find_package(SWIG COMPONENTS java)
+    find_package(Java COMPONENTS Development)
+    if(SWIG_FOUND AND Java_FOUND)
+        set(generated_file ${CMAKE_BINARY_DIR}/adaptagrams_wrap.cxx)
+        set(src_dir ${CMAKE_BINARY_DIR}/java/src/org/adaptagrams)
+        set(build_dir ${CMAKE_BINARY_DIR}/java/build/org/adaptagrams)
+        file(MAKE_DIRECTORY ${src_dir} ${build_dir})
+        execute_process(
+            OUTPUT_FILE ${generated_file}
+            COMMAND ${SWIG_EXECUTABLE} -DUSE_ASSERT_EXCEPTIONS -c++ -java
+                    -package org.adaptagrams
+                    -outdir ${src_dir}
+                    -o ${generated_file}
+                    adaptagrams.i
+            WORKING_DIRECTORY ${CMAKE_SOURCE_DIR}/cola
+        )
+        if(NOT EXISTS ${generated_file})
+            message(FATAL_ERROR "did not generate: ${generated_file}")
+        endif()
+
+        set(JAVA_HOME /opt/homebrew/opt/openjdk/libexec/openjdk.jdk/Contents/Home)
+
+        add_library(adaptagrams
+            SHARED
+            ${generated_file}
+        )
+
+        set_target_properties(
+            adaptagrams
+            PROPERTIES
+            CXX_STANDARD 11 
+            CXX_STANDARD_REQUIRED ON 
+            CXX_EXTENSIONS OFF
+        )
+
+        target_include_directories(adaptagrams
+            PUBLIC
+            ${Java_INCLUDE_DIRS}
+            ${JAVA_HOME}/include
+            ${JAVA_HOME}/include/darwin
+            ${JNI_INCLUDE_DIRS}
+
+            ${CMAKE_SOURCE_DIR}/cola
+        )
+
+        target_link_libraries(adaptagrams
+            PRIVATE
+            avoid
+            cola
+            dialect
+            topology
+            vpsc
+        )
+
+        execute_process(
+            COMMAND javac -d java/build/ java/src/org/adaptagrams/*.java
+            COMMAND jar cf adaptagrams.jar -C java/build/ .
+            WORKING_DIRECTORY ${CMAKE_BINARY_DIR}
+        )
+
+    else()
+        message(FATAL_ERROR "NotFoundError: SWIG: ${SWIG_FOUND} Java: ${Java_FOUND}")
+    endif()
+endif()
+
+
 if(BUILD_SWIG_PYTHON)
     find_package(SWIG COMPONENTS python)
-    find_package(Python COMPONENTS Interpreter Development.Module REQUIRED)
+    find_package(Python COMPONENTS Interpreter Development.Module)
     if(SWIG_FOUND AND Python_FOUND)
         message(STATUS "building adaptagrams swig python extension")
         set(generated_file ${CMAKE_BINARY_DIR}/adaptagrams_wrap.cxx)
         execute_process(
-            OUTPUT_FILE ${CMAKE_BINARY_DIR}/adaptagrams_wrap.cxx
+            OUTPUT_FILE ${generated_file}
             COMMAND ${SWIG_EXECUTABLE} -DNDEBUG -c++ -python
                     -outdir ${CMAKE_BINARY_DIR}
-                    -o ${generated_file} adaptagrams.i
+                    -o ${generated_file}
+                    adaptagrams.i
             WORKING_DIRECTORY ${CMAKE_SOURCE_DIR}/cola
         )
         if(NOT EXISTS ${generated_file})
