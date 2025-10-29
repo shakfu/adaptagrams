@@ -56,6 +56,7 @@ adaptagrams: adaptagrams_wrap.o
 jar: swig-worked
 	javac -d java/build/ java/src/org/adaptagrams/*.java
 	jar cf adaptagrams.jar -C java/build/ .
+	jar uf adaptagrams.jar -C java/src/ .
 
 realclean: clean
 
