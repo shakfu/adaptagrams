@@ -91,6 +91,26 @@ option(BUILD_SWIG_PYTHON "Enable building swig python wrapper" OFF)
 option(BUILD_TESTS "Enable building tests" ${_default_BUILD_TESTS})
 option(ENABLE_CCACHE "Use ccache if available" ON)
 
+# Compiler Flags
+include(CheckCXXCompilerFlag)
+function(check_cxx_flag out_list flag)
+    string(REGEX REPLACE "[^A-Za-z0-9]" "_" _key "${flag}")
+    check_cxx_compiler_flag("${flag}" HAVE_FLAG_${_key})
+    if(HAVE_FLAG_${_key})
+	list(APPEND ${out_list} "${flag}")
+	set(${out_list} "${${out_list}}" PARENT_SCOPE)
+    endif()
+endfunction()
+
+set(TGT_COMPILE_FLAGS "")
+check_cxx_flag(TGT_COMPILE_FLAGS "-Wall")
+check_cxx_flag(TGT_COMPILE_FLAGS "-Wpointer-arith")
+check_cxx_flag(TGT_COMPILE_FLAGS "-Wcast-align")
+check_cxx_flag(TGT_COMPILE_FLAGS "-Wsign-compare")
+check_cxx_flag(TGT_COMPILE_FLAGS "-Woverloaded-virtual")
+check_cxx_flag(TGT_COMPILE_FLAGS "-Wswitch")
+
+# Header files
 include(CheckIncludeFile)
 CHECK_INCLUDE_FILE(dlfcn.h HAVE_DLFCN_H)
 CHECK_INCLUDE_FILE(inttypes.h HAVE_INTTYPES_H)
@@ -103,6 +123,7 @@ CHECK_INCLUDE_FILE(sys/stat.h HAVE_SYS_STAT_H)
 CHECK_INCLUDE_FILE(sys/types.h HAVE_SYS_TYPES_H)
 CHECK_INCLUDE_FILE(unistd.h HAVE_UNISTD_H)
 
+# Write config header file
 configure_file(
     ${CMAKE_SOURCE_DIR}/cola/libcola/config.h.cmake.in 
     ${CMAKE_SOURCE_DIR}/cola/libcola/config.h
@@ -112,6 +133,7 @@ if(BUILD_TESTS)
     enable_testing()
 endif()
 
+# Ready for the main source files
 add_subdirectory(cola)
 
 # TODO - should this be in the cola subdirectory?

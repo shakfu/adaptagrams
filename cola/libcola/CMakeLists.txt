@@ -54,6 +54,11 @@ target_sources(
     FILES ${LIB_HEADERS}
 )
 
+target_compile_options(${LIB_NAME}
+    PRIVATE
+    ${TGT_COMPILE_FLAGS}
+)
+
 target_include_directories(${LIB_NAME}
     PUBLIC
     ${CMAKE_SOURCE_DIR}/cola
@@ -62,7 +67,7 @@ target_include_directories(${LIB_NAME}
 )
 
 set_target_properties(
-    ${LIB_NAME} 
+    ${LIB_NAME}
     PROPERTIES
     POSITION_INDEPENDENT_CODE ON
 )

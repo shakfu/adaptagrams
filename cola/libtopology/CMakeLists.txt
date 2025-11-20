@@ -39,9 +39,14 @@ target_include_directories(${LIB_NAME}
 )
 
 set_target_properties(
-    ${LIB_NAME} 
+    ${LIB_NAME}
     PROPERTIES
     POSITION_INDEPENDENT_CODE ON
+)
+
+target_compile_options(${LIB_NAME}
+    PRIVATE
+    ${TGT_COMPILE_FLAGS}
 )
 
 target_compile_definitions(${LIB_NAME}
