@@ -8,10 +8,6 @@ set(CMAKE_CXX_EXTENSIONS OFF)
 
 set(CMAKE_ARCHIVE_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR} CACHE PATH "" FORCE)
 
-option(BUILD_SWIG_PYTHON "Enable building swig python wrapper")
-option(BUILD_TESTS "Enable building tests")
-option(ENABLE_CCACHE "Use ccache if available" ON)
-
 # use ccache if available
 if(ENABLE_CCACHE)
     find_program(CCACHE_PROGRAM ccache)
@@ -23,38 +19,79 @@ endif()
 
 message(STATUS "CMAKE_SYSTEM_NAME: ${CMAKE_SYSTEM_NAME}")
 
-# optional cairo package
-if(CMAKE_SYSTEM_NAME STREQUAL "Darwin")
-    set(package_name cairomm-1.16)
-elseif(CMAKE_SYSTEM_NAME STREQUAL "Linux")
-    set(package_name cairomm-svg-1.16)
+# Adaptagrams uses Cario for some debug outputs - it is an optional dependency.
+# If the user hasn't told us what to do about tests, or if they have already
+# told us to build them, check and see if we have Cairo available.
+if (NOT DEFINED BUILD_TESTS OR BUILD_TESTS)
+    # optional cairo package
+    if(CMAKE_SYSTEM_NAME STREQUAL "Darwin")
+	set(package_name cairomm-1.16)
+    elseif(CMAKE_SYSTEM_NAME STREQUAL "Linux")
+	set(package_name cairomm-svg-1.16)
+    else()
+	set(HAVE_CAIROMM 0 CACHE BOOL "" FORCE)
+    endif()
+
+    if(DEFINED package_name)
+	find_package(PkgConfig)
+	if(PkgConfig_FOUND)
+	    pkg_check_modules(CAIROMM ${package_name})
+	    if(CAIROMM_FOUND)
+		set(HAVE_CAIROMM 1 CACHE BOOL "have cairomm on system" FORCE)
+		message(STATUS "CAIROMM_INCLUDE_DIRS: ${CAIROMM_INCLUDE_DIRS}")
+		message(STATUS "CAIROMM_LIBRARY_DIRS: ${CAIROMM_LIBRARY_DIRS}")
+		message(STATUS "CAIROMM_LIBRARIES: ${CAIROMM_LIBRARIES}")
+		message(STATUS "CAIROMM_CFLAGS: ${CAIROMM_CFLAGS}")
+		message(STATUS "CAIROMM_LDFLAGS: ${CAIROMM_LDFLAGS}")
+	    else()
+		message(STATUS "${package_name} NOT FOUND")
+		set(HAVE_CAIROMM 0 CACHE BOOL "" FORCE)
+	    endif()
+	else()
+	    message(STATUS "PkgConfig NOT FOUND")
+	    set(HAVE_CAIROMM 0 CACHE BOOL "" FORCE)
+	endif()
+    endif()
+
+    if (BUILD_TESTS AND NOT HAVE_CAIROMM)
+	# Since BUILD_TESTS can't work without Cairo, explicitly override the
+	# user supplied BUILD_TESTS activation.
+	message(WARNING "BUILD_TESTS enabled, but Cairo not found - disabling")
+	unset(BUILD_TESTS CACHE)
+	unset(BUILD_TESTS)
+    endif()
+endif()
+if(DEFINED HAVE_CAIROMM AND HAVE_CAIROMM)
+  set(_default_BUILD_TESTS ON)
 else()
-    set(HAVE_CAIROMM 0 CACHE BOOL "" FORCE)
+  set(_default_BUILD_TESTS OFF)
 endif()
 
-if(DEFINED package_name)
-    find_package(PkgConfig)
-    if(PkgConfig_FOUND)
-        pkg_check_modules(CAIROMM ${package_name})
-        if(CAIROMM_FOUND)
-            set(HAVE_CAIROMM 1 CACHE BOOL "have cairomm on system" FORCE)
-            message(STATUS "CAIROMM_INCLUDE_DIRS: ${CAIROMM_INCLUDE_DIRS}")
-            message(STATUS "CAIROMM_LIBRARY_DIRS: ${CAIROMM_LIBRARY_DIRS}")
-            message(STATUS "CAIROMM_LIBRARIES: ${CAIROMM_LIBRARIES}")
-            message(STATUS "CAIROMM_CFLAGS: ${CAIROMM_CFLAGS}")
-            message(STATUS "CAIROMM_LDFLAGS: ${CAIROMM_LDFLAGS}")
-        else()
-            message(STATUS "${package_name} NOT FOUND")
-            set(HAVE_CAIROMM 0 CACHE BOOL "" FORCE)
-        endif()
-    else()
-        message(STATUS "PkgConfig NOT FOUND")
-        set(HAVE_CAIROMM 0 CACHE BOOL "" FORCE)
+# The optional Python support requires both Python and SWIG.  Like the debug
+# case, check if we have what we need.
+if (NOT DEFINED BUILD_SWIG_PYTHON OR BUILD_SWIG_PYTHON)
+    find_package(SWIG COMPONENTS python)
+    find_package(Python COMPONENTS Interpreter Development.Module)
+    if(BUILD_SWIG_PYTHON)
+	if (NOT SWIG_FOUND OR NOT Python_FOUND)
+	    # Since BUILD_SWIG_PYTHON can't work without SWIG and Python,
+	    # explicitly override the user supplied BUILD_SWIG_PYTHON
+	    # activation in this situation.
+	    message(WARNING "BUILD_SWIG_PYTHON enabled, but not all necessary components were found - disabling")
+	    message(FATAL_ERROR "SWIG/Python search status: SWIG: ${SWIG_FOUND} Python: ${Python_FOUND}")
+	    unset(BUILD_SWIG_PYTHON CACHE)
+	    unset(BUILD_SWIG_PYTHON)
+	endif()
     endif()
 endif()
 
-include(CheckIncludeFile)
 
+# Build options
+option(BUILD_SWIG_PYTHON "Enable building swig python wrapper" OFF)
+option(BUILD_TESTS "Enable building tests" ${_default_BUILD_TESTS})
+option(ENABLE_CCACHE "Use ccache if available" ON)
+
+include(CheckIncludeFile)
 CHECK_INCLUDE_FILE(dlfcn.h HAVE_DLFCN_H)
 CHECK_INCLUDE_FILE(inttypes.h HAVE_INTTYPES_H)
 CHECK_INCLUDE_FILE(stdint.h HAVE_STDINT_H)
@@ -75,68 +112,68 @@ if(BUILD_TESTS)
     enable_testing()
 endif()
 
-
 add_subdirectory(cola)
 
-
+# TODO - should this be in the cola subdirectory?
 if(BUILD_SWIG_PYTHON)
-    find_package(SWIG COMPONENTS python)
-    find_package(Python COMPONENTS Interpreter Development.Module REQUIRED)
-    if(SWIG_FOUND AND Python_FOUND)
-        message(STATUS "building adaptagrams swig python extension")
-        set(generated_file ${CMAKE_BINARY_DIR}/adaptagrams_wrap.cxx)
-        execute_process(
-            OUTPUT_FILE ${CMAKE_BINARY_DIR}/adaptagrams_wrap.cxx
-            COMMAND ${SWIG_EXECUTABLE} -DNDEBUG -c++ -python
-                    -outdir ${CMAKE_BINARY_DIR}
-                    -o ${generated_file} adaptagrams.i
-            WORKING_DIRECTORY ${CMAKE_SOURCE_DIR}/cola
-        )
-        if(NOT EXISTS ${generated_file})
-            message(FATAL_ERROR "did not generate: ${generated_file}")
-        endif()
-
-        python_add_library(
-            _adaptagrams
-            MODULE WITH_SOABI
-            ${generated_file}
-        )
-
-        set_target_properties(
-            _adaptagrams
-            PROPERTIES
-            CXX_STANDARD 11 
-            CXX_STANDARD_REQUIRED ON 
-            CXX_EXTENSIONS OFF
-        )
-
-        target_compile_definitions(
-            _adaptagrams
-            PRIVATE
-            USE_ASSERT_EXCEPTIONS
-            SWIG_PYTHON_SILENT_MEMLEAK
-        )
-
-        target_include_directories(
-            _adaptagrams
-            PUBLIC
-            ${CMAKE_SOURCE_DIR}/cola
-        )
-
-        target_link_libraries(
-            _adaptagrams
-            PRIVATE
-            avoid
-            cola
-            dialect
-            topology
-            vpsc
-        )
-
-        install(TARGETS _adaptagrams DESTINATION lib/adaptagrams)
-        install(FILES ${CMAKE_SOURCE_DIR}/cola/__init__.py DESTINATION lib/adaptagrams)
-        install(FILES ${CMAKE_BINARY_DIR}/adaptagrams.py DESTINATION lib/adaptagrams)
-    else()
-        message(FATAL_ERROR "NotFoundError: SWIG: ${SWIG_FOUND} Python: ${Python_FOUND}")
+    message(STATUS "Building Adaptagrams SWIG Python extension")
+    set(generated_file ${CMAKE_BINARY_DIR}/adaptagrams_wrap.cxx)
+    execute_process(
+	OUTPUT_FILE ${CMAKE_BINARY_DIR}/adaptagrams_wrap.cxx
+	COMMAND ${SWIG_EXECUTABLE} -DNDEBUG -c++ -python
+	-outdir ${CMAKE_BINARY_DIR}
+	-o ${generated_file} adaptagrams.i
+	WORKING_DIRECTORY ${CMAKE_SOURCE_DIR}/cola
+    )
+    if(NOT EXISTS ${generated_file})
+	message(FATAL_ERROR "did not generate: ${generated_file}")
     endif()
+
+    python_add_library(
+	_adaptagrams
+	MODULE WITH_SOABI
+	${generated_file}
+    )
+
+    set_target_properties(
+	_adaptagrams
+	PROPERTIES
+	CXX_STANDARD 11
+	CXX_STANDARD_REQUIRED ON
+	CXX_EXTENSIONS OFF
+    )
+
+    target_compile_definitions(
+	_adaptagrams
+	PRIVATE
+	USE_ASSERT_EXCEPTIONS
+	SWIG_PYTHON_SILENT_MEMLEAK
+    )
+
+    target_include_directories(
+	_adaptagrams
+	PUBLIC
+	${CMAKE_SOURCE_DIR}/cola
+    )
+
+    target_link_libraries(
+	_adaptagrams
+	PRIVATE
+	avoid
+	cola
+	dialect
+	topology
+	vpsc
+    )
+
+    install(TARGETS _adaptagrams DESTINATION lib/adaptagrams)
+    install(FILES ${CMAKE_SOURCE_DIR}/cola/__init__.py DESTINATION lib/adaptagrams)
+    install(FILES ${CMAKE_BINARY_DIR}/adaptagrams.py DESTINATION lib/adaptagrams)
 endif()
+
+# Local Variables:
+# tab-width: 8
+# mode: cmake
+# indent-tabs-mode: t
+# End:
+# ex: shiftwidth=4 tabstop=8 cino=N-s
