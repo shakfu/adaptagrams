@@ -58,12 +58,15 @@ Graph_SP dialect::buildGraphFromTglf(std::string &s) {
 Graph_SP dialect::buildGraphFromTglf(istream &in) {
     Graph_SP graph = std::make_shared<Graph>();
     NodesById nodesByExternalId;
-    unsigned extId;
+    unsigned extId = 0;
     string line;
     unsigned state = 0;
-    double cx, cy, w, h;
+    double cx = 0.0;
+    double cy = 0.0;
+    double w = 0.0;
+    double h = 0.0;
     unsigned i1, i2;
-    char gtc, dir, rel1, rel2;
+    char gtc, dir, rel1;
     double gap;
     Node_SP node;
     Edge_SP edge;
@@ -105,7 +108,7 @@ Graph_SP dialect::buildGraphFromTglf(istream &in) {
             break;
         case 2:
             // SEPCOS
-            COLA_ASSERT(iss >> i1 >> i2 >> gtc >> dir >> rel1 >> rel2 >> gap);
+            COLA_ASSERT(iss >> i1 >> i2 >> gtc >> dir >> rel1 >> gap);
             id_type j1 = nodesByExternalId[i1]->id(),
                     j2 = nodesByExternalId[i2]->id();
             GapType gt{};
