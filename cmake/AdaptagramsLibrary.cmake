@@ -135,5 +135,7 @@ function(adaptagrams_add_library)
     install(TARGETS ${_chooser} EXPORT AdaptagramsTargets)
 
     # Record built component
-    set(ADAPTAGRAMS_BUILT_COMPONENTS "${ADAPTAGRAMS_BUILT_COMPONENTS};${ALIB_NAME}" PARENT_SCOPE)
+    set(_built_list "${ADAPTAGRAMS_BUILT_COMPONENTS}")
+    list(APPEND _built_list "${ALIB_NAME}")
+    set(ADAPTAGRAMS_BUILT_COMPONENTS "${_built_list}" PARENT_SCOPE)
 endfunction()

@@ -18,8 +18,20 @@ set(Adaptagrams_AVAILABLE_COMPONENTS "@ADAPTAGRAMS_BUILT_COMPONENTS@")
 # Load the exported targets (defines all adaptagrams::<...> targets).
 include("${CMAKE_CURRENT_LIST_DIR}/AdaptagramsTargets.cmake")
 
-# Validate requested COMPONENTS (if the user called find_package with COMPONENTS).
-# CMake sets Adaptagrams_FIND_COMPONENTS when components were requested.
+# Fallback autodetect (only if list empty)
+if(NOT Adaptagrams_AVAILABLE_COMPONENTS)
+    set(_auto "")
+    foreach(_cand avoid vpsc cola dialect topology project)
+        if(TARGET adaptagrams::${_cand})
+            list(APPEND _auto "${_cand}")
+        endif()
+    endforeach()
+    if(_auto)
+        list(REMOVE_DUPLICATES _auto)
+        set(Adaptagrams_AVAILABLE_COMPONENTS "${_auto}")
+    endif()
+endif()
+
 if(DEFINED Adaptagrams_FIND_COMPONENTS)
     foreach(_comp IN LISTS Adaptagrams_FIND_COMPONENTS)
         list(FIND Adaptagrams_AVAILABLE_COMPONENTS "${_comp}" _idx)
