@@ -31,11 +31,11 @@ jobs:
     - name: conan install dependencies
       run: conan install . --output-folder=build --build=missing
 
-    - name: build using cmake
-      run: |
-        cd build
-        cmake .. -DCMAKE_TOOLCHAIN_FILE="conan_toolchain.cmake" -DCMAKE_BUILD_TYPE=Release
-        cmake --build . --config Release
+    - name: configure cmake
+      run: cmake -B build -DCMAKE_TOOLCHAIN_FILE=build/conan_toolchain.cmake -DCMAKE_BUILD_TYPE=Release
+
+    - name: build
+      run: cmake --build build --config Release
 
     - uses: actions/upload-artifact@v4
       with:
