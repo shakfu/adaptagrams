@@ -1,14 +1,23 @@
 cmake_minimum_required(VERSION 3.22)
 
-project(adaptagrams)
+project(Adaptagrams VERSION 0.9.0)
 
+# Extra CMake support modules
+list(APPEND CMAKE_MODULE_PATH "${CMAKE_CURRENT_SOURCE_DIR}/cmake")
+include(AdaptagramsLibrary)
+
+# Standards
 set(CMAKE_CXX_STANDARD 11)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
 set(CMAKE_CXX_EXTENSIONS OFF)
 
-set(CMAKE_ARCHIVE_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR} CACHE PATH "" FORCE)
+# Output directories
+set(CMAKE_RUNTIME_OUTPUT_DIRECTORY ${PROJECT_BINARY_DIR} CACHE PATH "" FORCE)
+set(CMAKE_LIBRARY_OUTPUT_DIRECTORY ${PROJECT_BINARY_DIR} CACHE PATH "" FORCE)
+set(CMAKE_ARCHIVE_OUTPUT_DIRECTORY ${PROJECT_BINARY_DIR} CACHE PATH "" FORCE)
 
 # use ccache if available
+option(ENABLE_CCACHE "Use ccache if available" ON)
 if(ENABLE_CCACHE)
     find_program(CCACHE_PROGRAM ccache)
     if(CCACHE_PROGRAM)
@@ -17,12 +26,24 @@ if(ENABLE_CCACHE)
     endif()
 endif()
 
-message(STATUS "CMAKE_SYSTEM_NAME: ${CMAKE_SYSTEM_NAME}")
+# Build shared and static unless disabled by user
+if (NOT DEFINED BUILD_SHARED_LIBS)
+    set(BUILD_SHARED_LIBS ON)
+endif()
+if (NOT DEFINED BUILD_STATIC_LIBS)
+    set(BUILD_STATIC_LIBS ON)
+endif()
+
+# Set an RPATH value on install
+if(NOT DEFINED LIB_DIR)
+    set(LIB_DIR lib)
+endif()
+set(CMAKE_INSTALL_RPATH "${CMAKE_INSTALL_PREFIX}/${LIB_DIR}")
 
 # Adaptagrams uses Cario for some debug outputs - it is an optional dependency.
 # If the user hasn't told us what to do about tests, or if they have already
 # told us to build them, check and see if we have Cairo available.
-if (NOT DEFINED BUILD_TESTS OR BUILD_TESTS)
+if(NOT DEFINED BUILD_TESTS OR BUILD_TESTS)
     # optional cairo package
     if(CMAKE_SYSTEM_NAME STREQUAL "Darwin")
 	set(package_name cairomm-1.16)
@@ -69,7 +90,7 @@ endif()
 
 # The optional Python support requires both Python and SWIG.  Like the debug
 # case, check if we have what we need.
-if (NOT DEFINED BUILD_SWIG_PYTHON OR BUILD_SWIG_PYTHON)
+if(NOT DEFINED BUILD_SWIG_PYTHON OR BUILD_SWIG_PYTHON)
     find_package(SWIG COMPONENTS python)
     find_package(Python COMPONENTS Interpreter Development.Module)
     if(BUILD_SWIG_PYTHON)
@@ -89,7 +110,13 @@ endif()
 # Build options
 option(BUILD_SWIG_PYTHON "Enable building swig python wrapper" OFF)
 option(BUILD_TESTS "Enable building tests" ${_default_BUILD_TESTS})
-option(ENABLE_CCACHE "Use ccache if available" ON)
+
+# If you enable the following option, find_package calls identifying the
+# installed version from these outputs will prefer to use the static versions
+# of the libraries even if shared versions are present.  I.e. if you don't
+# target a specific type, and this option is set, parent code find_package
+# calls will preferentially get the static versions of the libraries.
+option(ADAPTAGRAMS_DEFAULT_TO_STATIC "Chooser targets in CMake exported config files prefer static variant when both static and shared are built" OFF)
 
 # Compiler Flags
 include(CheckCXXCompilerFlag)
@@ -101,7 +128,6 @@ function(check_cxx_flag out_list flag)
 	set(${out_list} "${${out_list}}" PARENT_SCOPE)
     endif()
 endfunction()
-
 set(TGT_COMPILE_FLAGS "")
 check_cxx_flag(TGT_COMPILE_FLAGS "-Wall")
 check_cxx_flag(TGT_COMPILE_FLAGS "-Wpointer-arith")
@@ -133,9 +159,15 @@ if(BUILD_TESTS)
     enable_testing()
 endif()
 
+# Global accumulator used by the helper for final export step
+set(ADAPTAGRAMS_EXPORT_TARGETS "")
+
 # Ready for the main source files
 add_subdirectory(cola)
 
+# ------------------------------------------------------------------------------
+# Optional SWIG Python module
+# ------------------------------------------------------------------------------
 # TODO - should this be in the cola subdirectory?
 if(BUILD_SWIG_PYTHON)
     message(STATUS "Building Adaptagrams SWIG Python extension")
@@ -192,6 +224,42 @@ if(BUILD_SWIG_PYTHON)
     install(FILES ${CMAKE_SOURCE_DIR}/cola/__init__.py DESTINATION lib/adaptagrams)
     install(FILES ${CMAKE_BINARY_DIR}/adaptagrams.py DESTINATION lib/adaptagrams)
 endif()
+
+# ------------------------------------------------------------------------------
+# Export / Package Configuration
+# ------------------------------------------------------------------------------
+include(CMakePackageConfigHelpers)
+
+write_basic_package_version_file(
+    "${CMAKE_CURRENT_BINARY_DIR}/AdaptagramsConfigVersion.cmake"
+    VERSION ${PROJECT_VERSION}
+    COMPATIBILITY SameMajorVersion
+)
+
+list(REMOVE_DUPLICATES ADAPTAGRAMS_BUILT_COMPONENTS)
+list(SORT ADAPTAGRAMS_BUILT_COMPONENTS)
+set(ADAPTAGRAMS_BUILT_COMPONENTS "${ADAPTAGRAMS_BUILT_COMPONENTS}")
+configure_file(
+    "${CMAKE_CURRENT_SOURCE_DIR}/cmake/AdaptagramsConfig.cmake.in"
+    "${CMAKE_CURRENT_BINARY_DIR}/AdaptagramsConfig.cmake"
+    @ONLY
+)
+
+# Install the export set (targets added via adaptagrams_add_library)
+install(
+    EXPORT AdaptagramsTargets
+    NAMESPACE adaptagrams::
+    DESTINATION lib/cmake/Adaptagrams
+    FILE AdaptagramsTargets.cmake
+)
+
+# Install the package config & version file
+install(
+    FILES
+    "${CMAKE_CURRENT_BINARY_DIR}/AdaptagramsConfig.cmake"
+    "${CMAKE_CURRENT_BINARY_DIR}/AdaptagramsConfigVersion.cmake"
+    DESTINATION lib/cmake/Adaptagrams
+)
 
 # Local Variables:
 # tab-width: 8
