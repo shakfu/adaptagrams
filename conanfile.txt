@@ -1,8 +1,13 @@
 [requires]
-cairomm/1.18.0
+cairomm/1.14.5
+
 [generators]
 CMakeDeps
 CMakeToolchain
+
 [layout]
 cmake_layout
+
+[options]
+cairomm*:shared=False
 
