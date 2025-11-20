@@ -32,7 +32,9 @@ jobs:
       run: conan install . --output-folder=build --build=missing
 
     - name: configure cmake
-      run: cmake -B build -DCMAKE_TOOLCHAIN_FILE=build/conan_toolchain.cmake -DCMAKE_BUILD_TYPE=Release
+      run: |
+        $toolchain = Join-Path $PWD "build" "conan_toolchain.cmake"
+        cmake -B build -DCMAKE_TOOLCHAIN_FILE="$toolchain" -DCMAKE_BUILD_TYPE=Release
 
     - name: build
       run: cmake --build build --config Release
