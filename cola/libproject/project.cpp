@@ -114,7 +114,11 @@ Block::Block(Variable* v)
  * \f$\frac{1}{|V|}\sum_{v_i\in V} d_i - b_i\f$.
  */
 double Block::optimalPosition() const {
-    return sum_over(V.begin(),V.end(),0.0,mem_fun(&Variable::displacement)) / w;
+    double total = 0.0;
+    for (auto* v : V) {
+        total += v->displacement();
+    }
+    return total / w;
 }
 
 /**
@@ -146,7 +150,9 @@ double compute_dfdv(Variable const* v, Constraint const* last) {
  * Compute the lagrange multipliers for each active constraint in the block
  */
 void Block::computeLagrangians() {
-    for_each(C.begin(),C.end(),mem_fun(&Constraint::resetLM));
+    for (auto* c : C) {
+        c->resetLM();
+    }
     compute_dfdv(V[0],nullptr);
 }
 
@@ -164,7 +170,9 @@ Project(
 }
 Project::
 ~Project() {
-    LIBPROJECT_ASSERT(blocks.size()==vs.size()-merges+splits);
+#ifndef NDEBUG
+    assert(blocks.size() == vs.size() - merges + splits);
+#endif
     for_each(blocks.begin(),blocks.end(),delete_object());
 }
 /** 
@@ -178,7 +186,9 @@ solve() {
     bool optimal=true;
     do {
         makeOptimal();
-        for_each(vs.begin(),vs.end(),mem_fun(&Variable::updatePosition));
+        for (auto* v : vs) {
+            v->updatePosition();
+        }
         ASSERT_COST_DECREASE(this);
         optimal=splitBlocks();
     } while(!optimal);
@@ -194,7 +204,9 @@ initBlocksAndConstraints() {
         Block *b=new Block(v);
         b->listIndex=blocks.insert(blocks.end(),b);
     }
-    for_each(cs.begin(),cs.end(),bind2nd(mem_fun(&Constraint::setActive),false));
+    for (auto* c : cs) {
+        c->setActive(false);
+    }
 }
 
 /** 
@@ -234,8 +246,8 @@ double Constraint::maxSafeAlpha() const {
  * Functor used for finding the largest move (alpha) we can make along the line from 
  * current positions to desired positions without violating a constraint.
  */
-struct MaxSafeMove : unary_function<Constraint*,void> {
-    MaxSafeMove(Constraint *&c, double &alpha) : c(c), alpha(alpha) { }
+struct MaxSafeMove {
+    MaxSafeMove(Constraint *&c, double &alpha) : c(c), alpha(alpha) {}
     /**
      * Compute the distance along the line from current to desired positions we would
      * need to move to make a given constraint tight.  If that distance is smaller than
@@ -454,7 +466,11 @@ makeInactive(Constraint *c) {
  * computes cost of the goal function over all variables
  */
 double Project::cost() const {
-    return sum_over(vs.begin(),vs.end(),0.0,mem_fun(&Variable::cost));
+    double total = 0.0;
+    for (auto* v : vs) {
+        total += v->cost();
+    }
+    return total;
 }
 
 } // namespace project
