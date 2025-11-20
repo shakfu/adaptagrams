@@ -270,7 +270,6 @@ void generateXConstraints(const Rectangles& rs, const Variables& vars,
                 }
             }
         } else {
-            size_t result;
             // Close event
             if(useNeighbourLists) {
                 for(NodeSet::iterator i=v->leftNeighbours->begin();
@@ -279,18 +278,20 @@ void generateXConstraints(const Rectangles& rs, const Variables& vars,
                     Node *u=*i;
                     double sep = (v->r->width()+u->r->width())/2.0;
                     cs.push_back(new Constraint(u->v,v->v,sep));
-                    result=u->rightNeighbours->erase(v);
-                    COLA_ASSERT(result==1);
+                    const size_t erased = u->rightNeighbours->erase(v);
+                    COLA_ASSERT(erased==1);
+                    COLA_UNUSED(erased);
                 }
-                
+
                 for(NodeSet::iterator i=v->rightNeighbours->begin();
                     i!=v->rightNeighbours->end();i++
                 ) {
                     Node *u=*i;
                     double sep = (v->r->width()+u->r->width())/2.0;
                     cs.push_back(new Constraint(v->v,u->v,sep));
-                    result=u->leftNeighbours->erase(v);
-                    COLA_ASSERT(result==1);
+                    const size_t erased = u->leftNeighbours->erase(v);
+                    COLA_ASSERT(erased==1);
+                    COLA_UNUSED(erased);
                 }
             } else {
                 Node *l=v->firstAbove, *r=v->firstBelow;
@@ -305,8 +306,9 @@ void generateXConstraints(const Rectangles& rs, const Variables& vars,
                     r->firstAbove=v->firstAbove;
                 }
             }
-            result=scanline.erase(v);
-            COLA_ASSERT(result==1);
+            const size_t erased2 = scanline.erase(v);
+            COLA_ASSERT(erased2==1);
+            COLA_UNUSED(erased2);
             delete v;
         }
         delete e;
