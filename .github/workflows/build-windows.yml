@@ -32,14 +32,10 @@ jobs:
     - name: conan install dependencies
       run: conan install . --output-folder=build --build=missing
 
-    # - name: build adaptagrams and swig python extension
-    #   run: make python
-    
     - name: build using cmake
       run: |
-        mkdir -p build
         cd build
-        cmake ..
+        cmake .. -DCMAKE_TOOLCHAIN_FILE=conan_toolchain.cmake -DCMAKE_BUILD_TYPE=Release
         cmake --build . --config Release
 
     - uses: actions/upload-artifact@v4
