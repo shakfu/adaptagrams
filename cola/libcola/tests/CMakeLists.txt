@@ -32,12 +32,12 @@ function(add_cola_test)
         PUBLIC
         ${CMAKE_SOURCE_DIR}/cola
         ${CMAKE_CURRENT_SOURCE_DIR}
-        $<${HAVE_CAIROMM}:${CAIROMM_INCLUDE_DIRS}>
+        $<$<AND:${HAVE_CAIROMM},$<BOOL:${CAIROMM_INCLUDE_DIRS}>>:${CAIROMM_INCLUDE_DIRS}>
     )
 
     target_link_directories(${COLA_TEST_NAME}
         PUBLIC
-        $<${HAVE_CAIROMM}:${CAIROMM_LIBRARY_DIRS}>
+        $<$<AND:${HAVE_CAIROMM},$<BOOL:${CAIROMM_LIBRARY_DIRS}>>:${CAIROMM_LIBRARY_DIRS}>
     )
 
     target_link_libraries(${COLA_TEST_NAME}
@@ -46,7 +46,7 @@ function(add_cola_test)
         topology
         cola
         avoid
-        $<${HAVE_CAIROMM}:${CAIROMM_LIBRARIES}>
+        $<$<BOOL:${HAVE_CAIROMM}>:${CAIROMM_LIBRARIES}>
     )
 
     add_test(NAME ${COLA_TEST_NAME}
