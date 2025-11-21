@@ -54,6 +54,11 @@ using std::signbit;
 
 using Avoid::Point;
 
+// Provide an unreachable macro (assert + throw) so non-void functions always end in a return.
+#ifndef COLA_UNREACHABLE
+#define COLA_UNREACHABLE(MSG) do { COLA_ASSERT(false && MSG); throw std::logic_error(MSG); } while(0)
+#endif
+
 SepDir dialect::negateSepDir(SepDir sd) {
     switch(sd) {
     case SepDir::EAST:
@@ -72,8 +77,8 @@ SepDir dialect::negateSepDir(SepDir sd) {
         return SepDir::RIGHT;
     case SepDir::UP:
         return SepDir::DOWN;
-    default :
-        COLA_ASSERT(false);
+    default:
+        COLA_UNREACHABLE("negateSepDir: invalid SepDir");
     }
 }
 
@@ -100,7 +105,7 @@ CardinalDir dialect::sepDirToCardinalDir(SepDir sd) {
     case SepDir::NORTH:
         return CardinalDir::NORTH;
     default:
-        COLA_ASSERT(false);
+        COLA_UNREACHABLE("sepDirToCardinalDir: non-cardinal SepDir");
     }
 }
 
@@ -115,7 +120,7 @@ SepDir dialect::cardinalDirToSepDir(CardinalDir dir) {
     case CardinalDir::NORTH:
         return SepDir::NORTH;
     default:
-        COLA_ASSERT(false);
+        COLA_UNREACHABLE("cardinalDirToSepDir: invalid CardinalDir");
     }
 }
 

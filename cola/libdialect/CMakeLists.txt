@@ -1,5 +1,3 @@
-set(LIB_NAME dialect)
-
 set(LIB_SOURCES
     aca.cpp
     bendseqlookup.cpp
@@ -52,53 +50,17 @@ set(LIB_HEADERS
     util.h
 )
 
-add_library(${LIB_NAME}
-    ${LIB_SOURCES}
-)
-
-target_sources(
-    ${LIB_NAME}
-    PUBLIC
-    FILE_SET libdialect_headers
-    BASE_DIRS ${CMAKE_CURRENT_SOURCE_DIR}
-    TYPE HEADERS
-    FILES ${LIB_HEADERS}
-)
-
-target_include_directories(${LIB_NAME}
-    PUBLIC
-    ${CMAKE_SOURCE_DIR}/cola
-    ${CMAKE_CURRENT_SOURCE_DIR}
-)
-
-set_target_properties(
-    ${LIB_NAME} 
-    PROPERTIES
-    POSITION_INDEPENDENT_CODE ON
-)
-
-target_compile_definitions(${LIB_NAME}
-    PUBLIC
-    ${COMMON_COMPILE_DEFINITIONS}
-)
-
-target_link_options(${LIB_NAME}
-    PUBLIC
-    ${COMMON_LINK_OPTIONS}
-)
-
-add_dependencies(${LIB_NAME}
-    avoid
-    cola
-    vpsc
+adaptagrams_add_library(
+    NAME dialect
+    SOURCES ${LIB_SOURCES}
+    HEADERS ${LIB_HEADERS}
+    EXPORT_SUBDIR libdialect
+    PUBLIC_INCLUDE_DIRS ${CMAKE_SOURCE_DIR}/cola ${CMAKE_CURRENT_SOURCE_DIR}
+    PUBLIC_DEFINITIONS ${COMMON_COMPILE_DEFINITIONS}
+    PUBLIC_LINK_OPTIONS ${COMMON_LINK_OPTIONS}
+    PUBLIC_LINK_LIBS adaptagrams::avoid adaptagrams::cola adaptagrams::vpsc
 )
 
 if(BUILD_TESTS)
     add_subdirectory(tests)
 endif()
-
-install(
-    TARGETS ${LIB_NAME}
-    FILE_SET libdialect_headers DESTINATION include/libdialect
-)
-

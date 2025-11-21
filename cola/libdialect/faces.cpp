@@ -437,7 +437,11 @@ size_t Face::findIndexOfFirstBend(void) {
     }
     // If we reach this point, we didn't find a bend. This should never happen, since every
     // Face should have at least one bend.
-    COLA_ASSERT(false);
+#ifndef FirstBend_UNREACHABLE
+#include <stdexcept>
+#define FirstBend_UNREACHABLE(MSG) do { COLA_ASSERT(false && MSG); throw std::logic_error(MSG); } while(0)
+#endif
+    FirstBend_UNREACHABLE("findIndexOfFirstBend: no bend found in face");
 }
 
 Sides Face::getRelevantSidesForPlacement(TreePlacement_SP tp) const {
@@ -484,8 +488,7 @@ ProjSeq_SP Face::computeCollateralProjSeq(TreePlacement_SP tp, double padding) {
     ProjSeq_SP ps = std::make_shared<ProjSeq>();
     Sides sides = getRelevantSidesForPlacement(tp);
     // Sanity check: should be exactly one or two relevant Sides:
-    size_t n = sides.size();
-    COLA_ASSERT(n == 1 || n == 2);
+    COLA_ASSERT(sides.size() == 1 || sides.size() == 2);
     // Now simply extend the ProjSeq for each Side, and return the result.
     for (Side_SP S : sides) *ps += *(S->computeCollateralProjSeq(tp, padding));
     return ps;

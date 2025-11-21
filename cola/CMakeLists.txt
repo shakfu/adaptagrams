@@ -13,19 +13,11 @@ set(COMMON_COMPILE_DEFINITIONS
     $<$<PLATFORM_ID:Windows>:_WINDOWS>
     $<$<PLATFORM_ID:Windows>:_USRDLL>
     $<$<PLATFORM_ID:Windows>:LIBAVOID_EXPORTS>
-
-    $<$<PLATFORM_ID:Unix>:-Wall>
-    $<$<PLATFORM_ID:Unix>:-Wpointer-arith>
-    $<$<PLATFORM_ID:Unix>:-Wcast-align>
-    $<$<PLATFORM_ID:Unix>:-Wsign-compare>
-    $<$<PLATFORM_ID:Unix>:-Woverloaded-virtual>
-    $<$<PLATFORM_ID:Unix>:-Wswitch>
 )
 
+add_subdirectory(libvpsc)
 add_subdirectory(libavoid)
 add_subdirectory(libcola)
-add_subdirectory(libdialect)
 add_subdirectory(libproject)
 add_subdirectory(libtopology)
-add_subdirectory(libvpsc)
-
+add_subdirectory(libdialect)
