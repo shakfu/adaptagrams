@@ -236,9 +236,15 @@ write_basic_package_version_file(
     COMPATIBILITY SameMajorVersion
 )
 
-list(REMOVE_DUPLICATES ADAPTAGRAMS_BUILT_COMPONENTS)
-list(SORT ADAPTAGRAMS_BUILT_COMPONENTS)
-set(ADAPTAGRAMS_BUILT_COMPONENTS "${ADAPTAGRAMS_BUILT_COMPONENTS}")
+# Collect built components from the global property
+get_property(_adaptagrams_components GLOBAL PROPERTY ADAPTAGRAMS_BUILT_COMPONENTS)
+if(NOT _adaptagrams_components)
+    set(_adaptagrams_components "")
+endif()
+# Normalize list
+list(REMOVE_DUPLICATES _adaptagrams_components)
+list(SORT _adaptagrams_components)
+set(ADAPTAGRAMS_BUILT_COMPONENTS "${_adaptagrams_components}")
 configure_file(
     "${CMAKE_CURRENT_SOURCE_DIR}/cmake/AdaptagramsConfig.cmake.in"
     "${CMAKE_CURRENT_BINARY_DIR}/AdaptagramsConfig.cmake"

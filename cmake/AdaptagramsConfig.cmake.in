@@ -1,24 +1,13 @@
 @PACKAGE_INIT@
 
 # Adaptagrams CMake package configuration.
-#
-# Provides imported targets for each built component (library):
-#   adaptagrams::<name>          - chooser alias (links to shared variant if built,
-#                                  otherwise static; unless ADAPTAGRAMS_DEFAULT_TO_STATIC was ON
-#                                  at build time, in which case it links to static when both exist)
-#   adaptagrams::<name>_static   - static variant (if built)
-#   adaptagrams::<name>_shared   - shared variant (if built)
-#
-# Build-time option summary (embedded for consumers):
-set(Adaptagrams_DEFAULT_TO_STATIC "@ADAPTAGRAMS_DEFAULT_TO_STATIC@")  # "ON" or "OFF"
 
-# List of available component (library) names, recorded during configure.
+set(Adaptagrams_DEFAULT_TO_STATIC "@ADAPTAGRAMS_DEFAULT_TO_STATIC@")
 set(Adaptagrams_AVAILABLE_COMPONENTS "@ADAPTAGRAMS_BUILT_COMPONENTS@")
 
-# Load the exported targets (defines all adaptagrams::<...> targets).
 include("${CMAKE_CURRENT_LIST_DIR}/AdaptagramsTargets.cmake")
 
-# Fallback autodetect (only if list empty)
+# Fallback autodetect if list empty
 if(NOT Adaptagrams_AVAILABLE_COMPONENTS)
     set(_auto "")
     foreach(_cand avoid vpsc cola dialect topology project)
@@ -32,6 +21,7 @@ if(NOT Adaptagrams_AVAILABLE_COMPONENTS)
     endif()
 endif()
 
+# Validate requested components
 if(DEFINED Adaptagrams_FIND_COMPONENTS)
     foreach(_comp IN LISTS Adaptagrams_FIND_COMPONENTS)
         list(FIND Adaptagrams_AVAILABLE_COMPONENTS "${_comp}" _idx)
@@ -46,8 +36,7 @@ if(DEFINED Adaptagrams_FIND_COMPONENTS)
     endif()
 endif()
 
-# Variant availability helper variables:
-# Adaptagrams_COMPONENT_<name>_HAS_STATIC / _HAS_SHARED set to 1 if variant exists, else 0.
+# Variant helper flags
 foreach(_comp IN LISTS Adaptagrams_AVAILABLE_COMPONENTS)
     set(Adaptagrams_COMPONENT_${_comp}_HAS_STATIC 0)
     set(Adaptagrams_COMPONENT_${_comp}_HAS_SHARED 0)
@@ -59,26 +48,22 @@ foreach(_comp IN LISTS Adaptagrams_AVAILABLE_COMPONENTS)
     endif()
 endforeach()
 
-# Result variable per CMake convention
 set(Adaptagrams_FOUND TRUE)
 
-# Optional summary message (suppress by setting Adaptagrams_SUPPRESS_SUMMARY before find_package).
 if(NOT DEFINED Adaptagrams_SUPPRESS_SUMMARY)
     message(STATUS "Found Adaptagrams @PACKAGE_VERSION@ (components: ${Adaptagrams_AVAILABLE_COMPONENTS}; default_to_static=${Adaptagrams_DEFAULT_TO_STATIC})")
 endif()
 
-# Convenience function (optional): adaptagrams_require_variants(<component> [STATIC] [SHARED])
-# Ensures a component and specific variant(s) exist.
 function(adaptagrams_require_variants comp)
     set(_need_static FALSE)
     set(_need_shared FALSE)
     foreach(arg IN LISTS ARGN)
         if(arg STREQUAL "STATIC")
-	   set(_need_static TRUE)
-        endif()
+			  set(_need_static TRUE)
+		  endif()
         if(arg STREQUAL "SHARED")
-	   set(_need_shared TRUE)
-        endif()
+			  set(_need_shared TRUE)
+		  endif()
     endforeach()
     list(FIND Adaptagrams_AVAILABLE_COMPONENTS "${comp}" _idx)
     if(_idx EQUAL -1)

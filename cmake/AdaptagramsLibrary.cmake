@@ -1,7 +1,3 @@
-# Wrap common logic used for building Adaptagrams libraries into
-# a reusable function (Option C: no separate iface target; usage requirements
-# applied directly to variants). Chooser target uses an internal name to avoid
-# collisions with any legacy ALIAS targets.
 function(adaptagrams_add_library)
     set(options OPTIONAL_CAIROMM)
     set(oneValueArgs NAME EXPORT_SUBDIR)
@@ -21,12 +17,20 @@ function(adaptagrams_add_library)
         message(FATAL_ERROR "adaptagrams_add_library(${ALIB_NAME}): EXPORT_SUBDIR is required")
     endif()
 
-    # Object library (single compilation of sources)
+    # EARLY: create chooser so dependent targets can link to adaptagrams::<name> immediately
+    # Use real chooser name <name>, then ALIAS adaptagrams::<name> for canonical external usage.
+    if(NOT TARGET ${ALIB_NAME})
+        add_library(${ALIB_NAME} INTERFACE)
+        add_library(adaptagrams::${ALIB_NAME} ALIAS ${ALIB_NAME})
+        # Install chooser now (variants will also install later)
+        install(TARGETS ${ALIB_NAME} EXPORT AdaptagramsTargets)
+    endif()
+
+    # Object library
     set(_obj "${ALIB_NAME}_obj")
     add_library(${_obj} OBJECT ${ALIB_SOURCES})
     set_target_properties(${_obj} PROPERTIES POSITION_INDEPENDENT_CODE ON)
 
-    # Compilation-only flags/defs
     if(TGT_COMPILE_FLAGS)
         target_compile_options(${_obj} PRIVATE ${TGT_COMPILE_FLAGS})
     endif()
@@ -36,8 +40,6 @@ function(adaptagrams_add_library)
     if(ALIB_PUBLIC_DEFINITIONS)
         target_compile_definitions(${_obj} PRIVATE ${ALIB_PUBLIC_DEFINITIONS})
     endif()
-
-    # Include dirs required to compile object sources
     if(ALIB_PUBLIC_INCLUDE_DIRS)
         target_include_directories(${_obj} PRIVATE ${ALIB_PUBLIC_INCLUDE_DIRS})
     endif()
@@ -49,14 +51,14 @@ function(adaptagrams_add_library)
     foreach(_kind STATIC SHARED)
         if((${_kind} STREQUAL "STATIC" AND BUILD_STATIC_LIBS) OR
            (${_kind} STREQUAL "SHARED" AND BUILD_SHARED_LIBS))
-            set(_variant "${ALIB_NAME}_${_kind}")
+            string(TOLOWER "${_kind}" _kind_lc)
+            set(_variant "${ALIB_NAME}_${_kind_lc}")
             add_library(${_variant} ${_kind} $<TARGET_OBJECTS:${_obj}>)
             set_target_properties(${_variant} PROPERTIES
                 OUTPUT_NAME ${ALIB_NAME}
                 POSITION_INDEPENDENT_CODE ON
             )
 
-            # PUBLIC usage requirements (with generator expressions)
             if(ALIB_PUBLIC_INCLUDE_DIRS)
                 foreach(_inc IN LISTS ALIB_PUBLIC_INCLUDE_DIRS)
                     target_include_directories(${_variant} PUBLIC
@@ -78,6 +80,7 @@ function(adaptagrams_add_library)
                 target_link_options(${_variant} PUBLIC ${ALIB_PUBLIC_LINK_OPTIONS})
             endif()
             if(ALIB_PUBLIC_LINK_LIBS)
+                # Link dependencies to variant; chooser gets them later
                 target_link_libraries(${_variant} PUBLIC ${ALIB_PUBLIC_LINK_LIBS})
             endif()
 
@@ -95,7 +98,6 @@ function(adaptagrams_add_library)
                 endif()
             endif()
 
-            # Header FILE_SET
             target_sources(${_variant} PUBLIC
                 FILE_SET ${ALIB_NAME}_headers
                 BASE_DIRS ${CMAKE_CURRENT_SOURCE_DIR}
@@ -103,11 +105,6 @@ function(adaptagrams_add_library)
                 FILES ${ALIB_HEADERS}
             )
 
-            # Build-tree alias for variant
-            string(TOLOWER "${_kind}" _kind_lc)
-            add_library(adaptagrams::${ALIB_NAME}_${_kind_lc} ALIAS ${_variant})
-
-            # Install/export variant
             install(
                 TARGETS ${_variant}
                 EXPORT AdaptagramsTargets
@@ -123,19 +120,47 @@ function(adaptagrams_add_library)
         message(FATAL_ERROR "adaptagrams_add_library(${ALIB_NAME}): No variants built.")
     endif()
 
-    # Internal chooser target name to avoid collisions with any legacy ALIAS targets
-    set(_chooser "adaptagrams_${ALIB_NAME}_chooser")
-    add_library(${_chooser} INTERFACE)
-    if(TARGET ${ALIB_NAME}_SHARED AND NOT ADAPTAGRAMS_DEFAULT_TO_STATIC)
-        target_link_libraries(${_chooser} INTERFACE ${ALIB_NAME}_SHARED)
+    # Update chooser with appropriate variant
+    if(TARGET ${ALIB_NAME}_shared AND NOT ADAPTAGRAMS_DEFAULT_TO_STATIC)
+        target_link_libraries(${ALIB_NAME} INTERFACE ${ALIB_NAME}_shared)
     else()
-        target_link_libraries(${_chooser} INTERFACE ${ALIB_NAME}_STATIC)
+        target_link_libraries(${ALIB_NAME} INTERFACE ${ALIB_NAME}_static)
     endif()
-    add_library(adaptagrams::${ALIB_NAME} ALIAS ${_chooser})
-    install(TARGETS ${_chooser} EXPORT AdaptagramsTargets)
 
-    # Record built component
-    set(_built_list "${ADAPTAGRAMS_BUILT_COMPONENTS}")
-    list(APPEND _built_list "${ALIB_NAME}")
-    set(ADAPTAGRAMS_BUILT_COMPONENTS "${_built_list}" PARENT_SCOPE)
+    # Propagate PUBLIC_LINK_LIBS also to chooser (if specified)
+    if(ALIB_PUBLIC_LINK_LIBS)
+        target_link_libraries(${ALIB_NAME} INTERFACE ${ALIB_PUBLIC_LINK_LIBS})
+    endif()
+    if(ALIB_PUBLIC_INCLUDE_DIRS)
+        foreach(_inc IN LISTS ALIB_PUBLIC_INCLUDE_DIRS)
+            target_include_directories(${ALIB_NAME} INTERFACE
+                $<BUILD_INTERFACE:${_inc}>
+            )
+        endforeach()
+        target_include_directories(${ALIB_NAME} INTERFACE
+            $<INSTALL_INTERFACE:include/${ALIB_EXPORT_SUBDIR}>
+        )
+    else()
+        target_include_directories(${ALIB_NAME} INTERFACE
+            $<INSTALL_INTERFACE:include/${ALIB_EXPORT_SUBDIR}>
+        )
+    endif()
+    if(ALIB_PUBLIC_DEFINITIONS)
+        target_compile_definitions(${ALIB_NAME} INTERFACE ${ALIB_PUBLIC_DEFINITIONS})
+    endif()
+    if(ALIB_PUBLIC_COMPILE_OPTIONS)
+        target_compile_options(${ALIB_NAME} INTERFACE ${ALIB_PUBLIC_COMPILE_OPTIONS})
+    endif()
+    if(ALIB_PUBLIC_LINK_OPTIONS)
+        target_link_options(${ALIB_NAME} INTERFACE ${ALIB_PUBLIC_LINK_OPTIONS})
+    endif()
+
+    # Track components globally
+    get_property(_built GLOBAL PROPERTY ADAPTAGRAMS_BUILT_COMPONENTS)
+    if(NOT _built)
+        set(_built "")
+    endif()
+    list(APPEND _built "${ALIB_NAME}")
+    list(REMOVE_DUPLICATES _built)
+    set_property(GLOBAL PROPERTY ADAPTAGRAMS_BUILT_COMPONENTS "${_built}")
 endfunction()
