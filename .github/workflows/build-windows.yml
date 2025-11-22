@@ -29,12 +29,22 @@ jobs:
       run: conan profile detect --force
 
     - name: conan install dependencies
-      run: conan install . --output-folder=build --build=missing
-
-    - name: configure cmake
       run: |
-        $toolchain = Join-Path $PWD "build" "conan_toolchain.cmake"
-        cmake -B build -DCMAKE_TOOLCHAIN_FILE="$toolchain" -DCMAKE_BUILD_TYPE=Release
+        conan install . --output-folder=build --build=missing -g CMakeToolchain -g CMakeDeps
+
+    - name: build using cmake
+      run: |
+        # Configure and build with an explicit toolchain path
+        cmake -S . -B build -DCMAKE_TOOLCHAIN_FILE=build/conan_toolchain.cmake -DCMAKE_BUILD_TYPE=Release
+        cmake --build build --config Release
+
+    # - name: conan install dependencies
+    #   run: conan install . --output-folder=build --build=missing
+
+    # - name: configure cmake
+    #   run: |
+    #     $toolchain = Join-Path $PWD "build" "conan_toolchain.cmake"
+    #     cmake -B build -DCMAKE_TOOLCHAIN_FILE="$toolchain" -DCMAKE_BUILD_TYPE=Release
 
     - name: build
       run: cmake --build build --config Release
