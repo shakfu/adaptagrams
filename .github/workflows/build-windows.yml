@@ -39,15 +39,13 @@ jobs:
     #     cmake --build build --config Release
 
     - name: conan install dependencies
-      run: conan install . --output-folder=build --build=missing
-
-    - name: list files in the build directory
-      run: ls build
+      run: conan install . --output-folder=_conan --build=missing
 
     - name: build using cmake
       run: |
         # Configure and build with an explicit toolchain path
-        cmake -S . -B build -DCMAKE_TOOLCHAIN_FILE=build/conan_toolchain.cmake -DCMAKE_BUILD_TYPE=Release
+        mkdir -p build
+        cmake -S . -B build -DCMAKE_TOOLCHAIN_FILE=_conan/conan_toolchain.cmake -DCMAKE_BUILD_TYPE=Release
         cmake --build build --config Release
 
     - name: build
