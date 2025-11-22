@@ -7,7 +7,7 @@ class CairoMMRecipe(ConanFile):
     generators = "CMakeDeps", "CMakeToolchain"
 
     def requirements(self):
-        self.requires("cairomm/1.18.0")
+        self.requires("cairomm/1.14.5")
 
     def layout(self):
         cmake_layout(self)
