@@ -41,6 +41,9 @@ jobs:
     - name: conan install dependencies
       run: conan install . --output-folder=build --build=missing
 
+    - name: list files in the build directory
+      run: ls build
+
     - name: build using cmake
       run: |
         # Configure and build with an explicit toolchain path
