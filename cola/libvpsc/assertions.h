@@ -21,6 +21,8 @@
 #ifndef VPSC_ASSERTIONS_H
 #define VPSC_ASSERTIONS_H
 
+#define COLA_UNUSED(expr) do { (void)(expr); } while (0)
+
 #ifdef NDEBUG 
 
   #define COLA_ASSERT(expr)  static_cast<void>(0)
