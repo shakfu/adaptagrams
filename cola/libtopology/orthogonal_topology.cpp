@@ -642,9 +642,9 @@ static void processLayoutConstraintEvent(LayoutScanlineNodeSet& scanline,
             r->firstAbove = v->firstAbove;
         }
 
-        size_t result;
-        result = scanline.erase(v);
-        COLA_ASSERT(result == 1);
+        const size_t erased = scanline.erase(v);
+        COLA_ASSERT(erased == 1);
+        COLA_UNUSED(erased);
         delete v;
     }
 
