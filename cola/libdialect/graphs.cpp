@@ -111,8 +111,11 @@ LineSegment_SP BoundingBox::buildSideSegment(CardinalDir side) const {
     case CardinalDir::NORTH:
         return std::make_shared<LineSegment>(Point(x, y), Point(X, y));
     default:
-        COLA_ASSERT(false);
-
+#ifndef buildSideSegment_DEFAULT_ERR
+#include <stdexcept>
+#define buildSideSegment_DEFAULT_ERR(MSG) do { COLA_ASSERT(false && MSG); throw std::logic_error(MSG); } while(0)
+#endif
+        buildSideSegment_DEFAULT_ERR("BoundingBox::buildSideSegment: invalid CardinalDir");
     }
 }
 

@@ -48,6 +48,10 @@ using std::min;
 using vpsc::Dim;
 using Avoid::Point;
 
+// Provide an unreachable macro (assert + throw) so non-void functions always end in a return.
+#ifndef COLA_UNREACHABLE
+#define COLA_UNREACHABLE(MSG) do { COLA_ASSERT(false && MSG); throw std::logic_error(MSG); } while(0)
+#endif
 
 CompassDir Compass::compassDirection(Avoid::Point p0, Avoid::Point p1) {
     double dx = p1.x - p0.x,
@@ -116,9 +120,10 @@ PlaneMap Compass::getRotationFunction(CardinalDir fromDir, CardinalDir toDir) {
     case 3:
         return [](const Point &p)->Point{return Point(p.y, -p.x);};
     default:
-        // Cannot happen.
-        COLA_ASSERT(false);
+        COLA_UNREACHABLE("Compass::getRotationFunction: invalid rotation index");
     }
+    // Satisfy compiler (unreachable).
+    COLA_UNREACHABLE("Compass::getRotationFunction: fell through switch");
 }
 
 InplacePlaneMap Compass::getInplaceRotationFunction(CardinalDir fromDir, CardinalDir toDir) {
@@ -136,9 +141,10 @@ InplacePlaneMap Compass::getInplaceRotationFunction(CardinalDir fromDir, Cardina
     case 3:
         return [](Point &p)->void{double t = p.x; p.x = p.y; p.y = -t;};
     default:
-        // Cannot happen.
-        COLA_ASSERT(false);
+        COLA_UNREACHABLE("Compass::getInplaceRotationFunction: invalid rotation index");
     }
+    // Satisfy compiler (unreachable).
+    COLA_UNREACHABLE("Compass::getInplaceRotationFunction: fell through switch");
 }
 
 Point Compass::vectorSigns(CompassDir d) {
@@ -152,8 +158,10 @@ Point Compass::vectorSigns(CompassDir d) {
     case CompassDir::NORTH: return Point( 0, -1);
     case CompassDir::NE:    return Point( 1, -1);
     default:
-        COLA_ASSERT(false);
+        COLA_UNREACHABLE("Compass::vectorSigns: invalid CompassDir");
     }
+    // Satisfy compiler (unreachable).
+    COLA_UNREACHABLE("Compass::vectorSigns: fell through switch");
 }
 
 const CardinalDirs Compass::cwCards{
@@ -252,8 +260,10 @@ std::string Compass::dirToString(CompassDir d) {
     case CompassDir::NW: return "NW";
     case CompassDir::NE: return "NE";
     default :
-        COLA_ASSERT(false);
+        COLA_UNREACHABLE("Compass::dirToString: invalid CompassDir");
     }
+    // Satisfy compiler (unreachable).
+    COLA_UNREACHABLE("Compass::dirToString: fell through switch");
 }
 
 std::string Compass::cardToString(CardinalDir d) {
@@ -263,8 +273,10 @@ std::string Compass::cardToString(CardinalDir d) {
     case CardinalDir::WEST: return "WEST";
     case CardinalDir::NORTH: return "NORTH";
     default:
-        COLA_ASSERT(false);
+        COLA_UNREACHABLE("Compass::cardToString: invalid CardinalDir");
     }
+    // Satisfy compiler (unreachable).
+    COLA_UNREACHABLE("Compass::cardToString: fell through switch");
 }
 
 const double LineSegment::EPSILON = 0.1;

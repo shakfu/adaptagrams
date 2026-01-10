@@ -1,0 +1,78 @@
+@PACKAGE_INIT@
+
+# Adaptagrams CMake package configuration.
+
+set(Adaptagrams_DEFAULT_TO_STATIC "@ADAPTAGRAMS_DEFAULT_TO_STATIC@")
+set(Adaptagrams_AVAILABLE_COMPONENTS "@ADAPTAGRAMS_BUILT_COMPONENTS@")
+
+include("${CMAKE_CURRENT_LIST_DIR}/AdaptagramsTargets.cmake")
+
+# Fallback autodetect if list empty
+if(NOT Adaptagrams_AVAILABLE_COMPONENTS)
+    set(_auto "")
+    foreach(_cand avoid vpsc cola dialect topology project)
+        if(TARGET adaptagrams::${_cand})
+            list(APPEND _auto "${_cand}")
+        endif()
+    endforeach()
+    if(_auto)
+        list(REMOVE_DUPLICATES _auto)
+        set(Adaptagrams_AVAILABLE_COMPONENTS "${_auto}")
+    endif()
+endif()
+
+# Validate requested components
+if(DEFINED Adaptagrams_FIND_COMPONENTS)
+    foreach(_comp IN LISTS Adaptagrams_FIND_COMPONENTS)
+        list(FIND Adaptagrams_AVAILABLE_COMPONENTS "${_comp}" _idx)
+        if(_idx EQUAL -1 OR NOT TARGET adaptagrams::${_comp})
+            list(APPEND _missing_list "${_comp}")
+        endif()
+    endforeach()
+    if(_missing_list)
+        message(FATAL_ERROR
+            "Adaptagrams: requested COMPONENTS not available: ${_missing_list}\n"
+            "Available components: ${Adaptagrams_AVAILABLE_COMPONENTS}")
+    endif()
+endif()
+
+# Variant helper flags
+foreach(_comp IN LISTS Adaptagrams_AVAILABLE_COMPONENTS)
+    set(Adaptagrams_COMPONENT_${_comp}_HAS_STATIC 0)
+    set(Adaptagrams_COMPONENT_${_comp}_HAS_SHARED 0)
+    if(TARGET adaptagrams::${_comp}_static)
+        set(Adaptagrams_COMPONENT_${_comp}_HAS_STATIC 1)
+    endif()
+    if(TARGET adaptagrams::${_comp}_shared)
+        set(Adaptagrams_COMPONENT_${_comp}_HAS_SHARED 1)
+    endif()
+endforeach()
+
+set(Adaptagrams_FOUND TRUE)
+
+if(NOT DEFINED Adaptagrams_SUPPRESS_SUMMARY)
+    message(STATUS "Found Adaptagrams @PACKAGE_VERSION@ (components: ${Adaptagrams_AVAILABLE_COMPONENTS}; default_to_static=${Adaptagrams_DEFAULT_TO_STATIC})")
+endif()
+
+function(adaptagrams_require_variants comp)
+    set(_need_static FALSE)
+    set(_need_shared FALSE)
+    foreach(arg IN LISTS ARGN)
+        if(arg STREQUAL "STATIC")
+			  set(_need_static TRUE)
+		  endif()
+        if(arg STREQUAL "SHARED")
+			  set(_need_shared TRUE)
+		  endif()
+    endforeach()
+    list(FIND Adaptagrams_AVAILABLE_COMPONENTS "${comp}" _idx)
+    if(_idx EQUAL -1)
+        message(FATAL_ERROR "Adaptagrams component '${comp}' not built. Available: ${Adaptagrams_AVAILABLE_COMPONENTS}")
+    endif()
+    if(_need_static AND NOT TARGET adaptagrams::${comp}_static)
+        message(FATAL_ERROR "Adaptagrams component '${comp}' static variant not built.")
+    endif()
+    if(_need_shared AND NOT TARGET adaptagrams::${comp}_shared)
+        message(FATAL_ERROR "Adaptagrams component '${comp}' shared variant not built.")
+    endif()
+endfunction()
